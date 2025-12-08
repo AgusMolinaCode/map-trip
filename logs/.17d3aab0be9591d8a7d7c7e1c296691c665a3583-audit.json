@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\.17d3aab0be9591d8a7d7c7e1c296691c665a3583-audit.json",
+    "files": [
+        {
+            "date": 1764340150950,
+            "name": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\mcp-puppeteer-2025-11-28.log",
+            "hash": "0ace2614037f83a76acda974e052a461f0a85b92fd7b8a830004285cf9505c48"
+        }
+    ],
+    "hashType": "sha256"
+}
