@@ -27,6 +27,7 @@ A full-featured travel planner built with Next.js, Mapbox GL JS, and shadcn/ui c
 - **Styling**: TailwindCSS
 - **Language**: TypeScript
 
+
 ## Project Structure
 
 ```
