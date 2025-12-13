@@ -6,11 +6,6 @@
     "auditLog": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\.17d3aab0be9591d8a7d7c7e1c296691c665a3583-audit.json",
     "files": [
         {
-            "date": 1764340150950,
-            "name": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\mcp-puppeteer-2025-11-28.log",
-            "hash": "0ace2614037f83a76acda974e052a461f0a85b92fd7b8a830004285cf9505c48"
-        },
-        {
             "date": 1765413523101,
             "name": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\mcp-puppeteer-2025-12-10.log",
             "hash": "db6311f6a16ae9183f6d784d6a17396a87493aa0ad76ecbe87b2901e773e7a10"
@@ -19,6 +14,11 @@
             "date": 1765543981584,
             "name": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\mcp-puppeteer-2025-12-12.log",
             "hash": "a96fb372cf4af88a7ec6499e1260119e9380a54fe5d05e26ee7924fd5b5f2c92"
+        },
+        {
+            "date": 1765605192220,
+            "name": "C:\\Users\\urano\\OneDrive\\Escritorio\\Programacion\\map-trip\\logs\\mcp-puppeteer-2025-12-13.log",
+            "hash": "99e3a2763b408bf5cacb14e65d92e35a4b52572383a7154b876a9e8499698714"
         }
     ],
     "hashType": "sha256"
