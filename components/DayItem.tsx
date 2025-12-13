@@ -22,17 +22,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { PlaceItem } from '@/components/PlaceItem'
 import { PlaceSearch } from '@/components/PlaceSearch'
-import { Plus, Trash2, Car, PersonStanding, Bike, Timer, Route } from 'lucide-react'
-import { useTripStore, type Day, type Place, type RouteProfile } from '@/hooks/useTripStore'
+import { Plus, Trash2, Timer, Route } from 'lucide-react'
+import { useTripStore, type Day, type Place } from '@/hooks/useTripStore'
 
 interface DayItemProps {
   day: Day
@@ -46,7 +39,6 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
   const addPlace = useTripStore((state) => state.addPlace)
   const removePlace = useTripStore((state) => state.removePlace)
   const reorderPlaces = useTripStore((state) => state.reorderPlaces)
-  const setRouteProfile = useTripStore((state) => state.setRouteProfile)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -113,33 +105,6 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
     return `${km} km`
   }
 
-  // Get route profile icon
-  const getRouteIcon = (profile: RouteProfile) => {
-    switch (profile) {
-      case 'driving':
-      case 'driving-traffic':
-        return <Car className="h-4 w-4" />
-      case 'walking':
-        return <PersonStanding className="h-4 w-4" />
-      case 'cycling':
-        return <Bike className="h-4 w-4" />
-    }
-  }
-
-  // Get route profile label
-  const getRouteLabel = (profile: RouteProfile) => {
-    switch (profile) {
-      case 'driving':
-        return 'Driving'
-      case 'driving-traffic':
-        return 'Driving (Traffic)'
-      case 'walking':
-        return 'Walking'
-      case 'cycling':
-        return 'Cycling'
-    }
-  }
-
   return (
     <AccordionItem value={day.id}>
       <AccordionTrigger className="hover:no-underline group">
@@ -156,52 +121,6 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-3 pt-2">
-          {/* Route Profile Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Travel Mode
-            </label>
-            <Select
-              value={day.routeProfile}
-              onValueChange={(value) =>
-                setRouteProfile(day.id, value as RouteProfile)
-              }
-            >
-              <SelectTrigger className="w-full">
-                <div className="flex items-center gap-2">
-                  {getRouteIcon(day.routeProfile)}
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="driving">
-                  <div className="flex items-center gap-2">
-                    <Car className="h-4 w-4" />
-                    <span>Driving</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="driving-traffic">
-                  <div className="flex items-center gap-2">
-                    <Car className="h-4 w-4" />
-                    <span>Driving (Traffic)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="walking">
-                  <div className="flex items-center gap-2">
-                    <PersonStanding className="h-4 w-4" />
-                    <span>Walking</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="cycling">
-                  <div className="flex items-center gap-2">
-                    <Bike className="h-4 w-4" />
-                    <span>Cycling</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Route Stats */}
           {day.routeStats && day.places.length > 1 && (
             <div className="grid grid-cols-2 gap-2 p-2 bg-muted/50 rounded-md">

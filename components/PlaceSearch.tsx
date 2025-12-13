@@ -10,10 +10,11 @@ interface SearchResult {
   place_name: string
   center: [number, number]
   text: string
+  bbox?: [number, number, number, number]
 }
 
 interface PlaceSearchProps {
-  onSelect: (place: { name: string; coordinates: [number, number]; address: string }) => void
+  onSelect: (place: { name: string; coordinates: [number, number]; address: string; bbox?: [number, number, number, number] }) => void
   onClose: () => void
 }
 
@@ -60,6 +61,7 @@ export function PlaceSearch({ onSelect, onClose }: PlaceSearchProps) {
       name: result.text,
       coordinates: result.center,
       address: result.place_name,
+      bbox: result.bbox,
     })
     onClose()
   }
