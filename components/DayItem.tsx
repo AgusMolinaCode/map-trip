@@ -115,7 +115,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
           />
           <span className="font-semibold">{day.name}</span>
           <span className="text-xs text-muted-foreground">
-            {day.places.length} {day.places.length === 1 ? 'place' : 'places'}
+            {day.places.length} {day.places.length === 1 ? 'lugar' : 'lugares'}
           </span>
         </div>
       </AccordionTrigger>
@@ -125,9 +125,9 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
           {day.routeStats && day.places.length > 1 && (
             <div className="grid grid-cols-2 gap-2 p-2 bg-muted/50 rounded-md">
               {day.routeStats.distance && (
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-sm cursor-pointer">
                   <Route className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">
+                  <span className="font-medium cursor-pointer">
                     {formatDistance(day.routeStats.distance)}
                   </span>
                 </div>
@@ -152,11 +152,11 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full bg-accent hover:shadow-md hover:cursor-pointer"
               onClick={() => setIsAddingPlace(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Place
+              Agregar destino
             </Button>
           )}
 
@@ -186,18 +186,18 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
 
           {day.places.length === 0 && !isAddingPlace && (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No places added yet
+              No se añadieron lugares aún.
             </p>
           )}
 
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="w-full text-destructive hover:text-destructive hover:cursor-pointer"
             onClick={() => removeDay(day.id)}
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Remove Day
+            Eliminar día
           </Button>
         </div>
       </AccordionContent>

@@ -39,11 +39,11 @@ export function AppSidebar() {
       <SidebarHeader className="border-b p-4 shrink-0">
         <div className="flex items-center gap-2 mb-4">
           <Map className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Trip Planner</h1>
+          <h1 className="text-xl font-bold">Planea tu viaje</h1>
         </div>
-        <Button onClick={addDay} className="w-full font-semibold hover:shadow-lg duration-300">
+        <Button variant={'outline'} onClick={addDay} className="w-full font-semibold hover:shadow-md hover:cursor-pointer duration-300 bg-accent">
           <Plus className="h-4 w-4 mr-2" />
-          Add Day
+          Agregar
         </Button>
       </SidebarHeader>
 
@@ -69,16 +69,16 @@ export function AppSidebar() {
 
         {/* Trip Days Group */}
         <SidebarGroup className="flex-1">
-          <SidebarGroupLabel>Trip Days</SidebarGroupLabel>
+          <SidebarGroupLabel>Dias de viaje</SidebarGroupLabel>
           <SidebarGroupContent>
             <ScrollArea className="h-[400px]">
               {days.length === 0 ? (
                 <div className="text-center py-8 px-4">
                   <p className="text-sm text-muted-foreground mb-2">
-                    No days planned yet
+                    No hay días planeados aún.
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Click &quot;Add Day&quot; to start planning
+                    Clic en &quot;Agregar&quot; para comenzar a planear tu viaje.
                   </p>
                 </div>
               ) : (

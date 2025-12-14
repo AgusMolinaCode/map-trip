@@ -67,12 +67,12 @@ export function PlaceSearch({ onSelect, onClose }: PlaceSearchProps) {
   }
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2 w-full max-w-full overflow-hidden">
+      <div className="relative w-full">
         <Input
           ref={inputRef}
           type="text"
-          placeholder="Search for a place..."
+          placeholder="Buscar lugar..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -80,6 +80,7 @@ export function PlaceSearch({ onSelect, onClose }: PlaceSearchProps) {
               onClose()
             }
           }}
+          className="w-full"
         />
         {loading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
@@ -87,24 +88,26 @@ export function PlaceSearch({ onSelect, onClose }: PlaceSearchProps) {
       </div>
 
       {results.length > 0 && (
-        <Card className="p-2 max-h-64 overflow-y-auto">
-          {results.map((result) => (
-            <button
-              key={result.id}
-              className="w-full text-left p-2 hover:bg-accent rounded-md transition-colors"
-              onClick={() => handleSelect(result)}
-            >
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{result.text}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {result.place_name}
-                  </p>
+        <Card className="p-2 max-h-48 w-full max-w-full overflow-hidden">
+          <div className="overflow-y-auto overflow-x-hidden max-h-44">
+            {results.map((result) => (
+              <button
+                key={result.id}
+                className="w-full max-w-full text-left p-2 hover:bg-accent rounded-md transition-colors block"
+                onClick={() => handleSelect(result)}
+              >
+                <div className="flex items-start gap-2 w-full max-w-full cursor-pointer">
+                  <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                  <div className="flex-1 min-w-0 w-0">
+                    <p className="text-sm font-medium truncate max-w-full">{result.text}</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-full">
+                      {result.place_name}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </Card>
       )}
     </div>

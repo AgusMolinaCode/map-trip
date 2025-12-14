@@ -57,7 +57,7 @@ export const useTripStore = create<TripStore>((set) => ({
         ...state.days,
         {
           id: `day-${Date.now()}`,
-          name: `Day ${state.days.length + 1}`,
+          name: `Dia ${state.days.length + 1}`,
           places: [],
           routeProfile: 'driving',
           routeStats: undefined,
