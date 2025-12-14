@@ -14,7 +14,6 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Accordion } from '@/components/ui/accordion'
 import { DayItem } from '@/components/DayItem'
 import { useTripStore } from '@/hooks/useTripStore'
@@ -68,32 +67,30 @@ export function AppSidebar() {
         </SidebarGroup> */}
 
         {/* Trip Days Group */}
-        <SidebarGroup className="flex-1">
+        <SidebarGroup className="flex-1 overflow-y-auto">
           <SidebarGroupLabel>Dias de viaje</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <ScrollArea className="h-[400px]">
-              {days.length === 0 ? (
-                <div className="text-center py-8 px-4">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    No hay días planeados aún.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Clic en &quot;Agregar&quot; para comenzar a planear tu viaje.
-                  </p>
-                </div>
-              ) : (
-                <Accordion type="multiple" className="w-full min-w-0">
-                  {days.map((day, index) => (
-                    <DayItem
-                      key={day.id}
-                      day={day}
-                      dayIndex={index}
-                      onPlaceClick={handlePlaceClick}
-                    />
-                  ))}
-                </Accordion>
-              )}
-            </ScrollArea>
+          <SidebarGroupContent className="px-2">
+            {days.length === 0 ? (
+              <div className="text-center py-8 px-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  No hay días planeados aún.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Clic en &quot;Agregar&quot; para comenzar a planear tu viaje.
+                </p>
+              </div>
+            ) : (
+              <Accordion type="multiple" className="w-full min-w-0">
+                {days.map((day, index) => (
+                  <DayItem
+                    key={day.id}
+                    day={day}
+                    dayIndex={index}
+                    onPlaceClick={handlePlaceClick}
+                  />
+                ))}
+              </Accordion>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

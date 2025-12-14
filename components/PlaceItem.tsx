@@ -33,21 +33,21 @@ export function PlaceItem({ place, onRemove, onClick }: PlaceItemProps) {
     <Card
       ref={setNodeRef}
       style={style}
-      className="p-3 mb-2 cursor-pointer hover:bg-accent/50 transition-colors"
+      className="p-3 mb-2 cursor-pointer hover:bg-accent/50 transition-colors w-full max-w-full overflow-hidden"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full max-w-full">
         <button
-          className="cursor-grab active:cursor-grabbing touch-none"
+          className="cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
           {...attributes}
           {...listeners}
         >
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </button>
 
-        <div className="flex-1 min-w-0" onClick={onClick}>
-          <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 w-0" onClick={onClick}>
+          <div className="flex items-center gap-2 w-full">
             <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 w-0">
               <p className="text-sm font-medium truncate">{place.name}</p>
               {place.address && (
                 <p className="text-xs text-muted-foreground truncate">
