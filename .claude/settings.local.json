@@ -10,7 +10,12 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(curl:*)",
       "Bash(npm run build:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_close"
     ],
     "deny": [],
     "ask": []

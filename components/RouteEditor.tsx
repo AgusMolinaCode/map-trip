@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { X, Check, Trash2 } from 'lucide-react'
 import { useTripStore, type Place } from '@/hooks/useTripStore'
 import type { MapRef } from 'react-map-gl/mapbox'
+import type { IControl } from 'mapbox-gl'
 
 interface RouteEditorProps {
   mapRef: MapRef | null
@@ -65,7 +66,7 @@ export function RouteEditor({ mapRef, dayId, fromPlace, toPlace, onClose }: Rout
       ],
     })
 
-    map.addControl(draw as any)
+  map.addControl(draw as unknown as IControl)
     drawRef.current = draw
 
     // If there's an existing custom route, load it
@@ -80,7 +81,7 @@ export function RouteEditor({ mapRef, dayId, fromPlace, toPlace, onClose }: Rout
 
     return () => {
       if (drawRef.current) {
-        map.removeControl(drawRef.current as any)
+        map.removeControl(drawRef.current as unknown as IControl)
         drawRef.current = null
       }
     }

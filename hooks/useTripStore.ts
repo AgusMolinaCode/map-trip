@@ -24,17 +24,40 @@ export interface CustomRoute {
   }
 }
 
+// Point of Interest - standalone pin not connected to route
+export interface PointOfInterest {
+  id: string
+  name: string
+  coordinates: [number, number]
+  address?: string
+  note?: string
+}
+
 export interface Day {
   id: string
   name: string
   places: Place[]
+  pointsOfInterest: PointOfInterest[]
   routeProfile: RouteProfile
   routeStats?: RouteStats
   customRoutes?: CustomRoute[]
 }
 
+// Search pin for exploring tourist places independently of the route
+export interface SearchPin {
+  id: string
+  name: string
+  coordinates: [number, number]
+  address?: string
+  bbox?: [number, number, number, number]
+}
+
 interface TripStore {
   days: Day[]
+  searchPins: SearchPin[]
+  addSearchPin: (pin: Omit<SearchPin, 'id'>) => void
+  removeSearchPin: (pinId: string) => void
+  clearSearchPins: () => void
   addDay: () => void
   removeDay: (dayId: string) => void
   addPlace: (dayId: string, place: Place) => void
@@ -42,6 +65,11 @@ interface TripStore {
   reorderPlaces: (dayId: string, places: Place[]) => void
   updatePlaceCoordinates: (dayId: string, placeId: string, coordinates: [number, number]) => void
   updatePlaceInfo: (dayId: string, placeId: string, name: string, address: string) => void
+  // Points of Interest actions
+  addPointOfInterest: (dayId: string, poi: Omit<PointOfInterest, 'id'>) => void
+  removePointOfInterest: (dayId: string, poiId: string) => void
+  updatePoiCoordinates: (dayId: string, poiId: string, coordinates: [number, number]) => void
+  updatePoiInfo: (dayId: string, poiId: string, name: string, address: string) => void
   setRouteProfile: (dayId: string, profile: RouteProfile) => void
   updateRouteStats: (dayId: string, stats: RouteStats) => void
   setCustomRoute: (dayId: string, customRoute: CustomRoute) => void
@@ -50,6 +78,28 @@ interface TripStore {
 
 export const useTripStore = create<TripStore>((set) => ({
   days: [],
+  searchPins: [],
+
+  addSearchPin: (pin) =>
+    set((state) => ({
+      searchPins: [
+        ...state.searchPins,
+        {
+          ...pin,
+          id: `search-pin-${Date.now()}`,
+        },
+      ],
+    })),
+
+  removeSearchPin: (pinId) =>
+    set((state) => ({
+      searchPins: state.searchPins.filter((pin) => pin.id !== pinId),
+    })),
+
+  clearSearchPins: () =>
+    set(() => ({
+      searchPins: [],
+    })),
 
   addDay: () =>
     set((state) => ({
@@ -59,6 +109,7 @@ export const useTripStore = create<TripStore>((set) => ({
           id: `day-${Date.now()}`,
           name: `Dia ${state.days.length + 1}`,
           places: [],
+          pointsOfInterest: [],
           routeProfile: 'driving',
           routeStats: undefined,
         },
@@ -117,6 +168,62 @@ export const useTripStore = create<TripStore>((set) => ({
               ...day,
               places: day.places.map((place) =>
                 place.id === placeId ? { ...place, name, address } : place
+              ),
+            }
+          : day
+      ),
+    })),
+
+  // Points of Interest implementations
+  addPointOfInterest: (dayId, poi) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              pointsOfInterest: [
+                ...day.pointsOfInterest,
+                { ...poi, id: `poi-${Date.now()}` },
+              ],
+            }
+          : day
+      ),
+    })),
+
+  removePointOfInterest: (dayId, poiId) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              pointsOfInterest: day.pointsOfInterest.filter((p) => p.id !== poiId),
+            }
+          : day
+      ),
+    })),
+
+  updatePoiCoordinates: (dayId, poiId, coordinates) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              pointsOfInterest: day.pointsOfInterest.map((poi) =>
+                poi.id === poiId ? { ...poi, coordinates } : poi
+              ),
+            }
+          : day
+      ),
+    })),
+
+  updatePoiInfo: (dayId, poiId, name, address) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              pointsOfInterest: day.pointsOfInterest.map((poi) =>
+                poi.id === poiId ? { ...poi, name, address } : poi
               ),
             }
           : day

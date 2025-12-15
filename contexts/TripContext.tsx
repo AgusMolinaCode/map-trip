@@ -7,6 +7,7 @@ import type { Place } from '@/hooks/useTripStore'
 interface TripContextType {
   mapRef: React.RefObject<MapViewRef | null>
   handlePlaceClick: (place: Place) => void
+  handleFlyToCoordinates: (coordinates: [number, number]) => void
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined)
@@ -18,8 +19,18 @@ export function TripProvider({ children }: { children: ReactNode }) {
     mapRef.current?.flyToPlace(place)
   }
 
+  const handleFlyToCoordinates = (coordinates: [number, number]) => {
+    // Create a temporary place to fly to
+    const tempPlace: Place = {
+      id: 'temp',
+      name: 'temp',
+      coordinates,
+    }
+    mapRef.current?.flyToPlace(tempPlace)
+  }
+
   return (
-    <TripContext.Provider value={{ mapRef, handlePlaceClick }}>
+    <TripContext.Provider value={{ mapRef, handlePlaceClick, handleFlyToCoordinates }}>
       {children}
     </TripContext.Provider>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { Map, Home, Search, Calendar, Settings, Plus } from 'lucide-react'
+import { Map, Plus } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -9,28 +9,20 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Accordion } from '@/components/ui/accordion'
 import { DayItem } from '@/components/DayItem'
+import { TouristPinSearch } from '@/components/TouristPinSearch'
 import { useTripStore } from '@/hooks/useTripStore'
 import { useTripContext } from '@/contexts/TripContext'
 
-// Navigation items
-const navItems = [
-  { title: 'Home', url: '/dashboard', icon: Home },
-  { title: 'Search', url: '/dashboard/search', icon: Search },
-  { title: 'Calendar', url: '/dashboard/calendar', icon: Calendar },
-  { title: 'Settings', url: '/dashboard/settings', icon: Settings },
-]
+
 
 export function AppSidebar() {
   const days = useTripStore((state) => state.days)
   const addDay = useTripStore((state) => state.addDay)
-  const { handlePlaceClick } = useTripContext()
+  const { handlePlaceClick, handleFlyToCoordinates } = useTripContext()
 
   return (
     <Sidebar className="w-120">
@@ -47,24 +39,13 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Navigation Group */}
-        {/* <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+        {/* Tourist Place Search */}
+        <SidebarGroup className="shrink-0">
+          <SidebarGroupLabel>Buscar lugares</SidebarGroupLabel>
+          <SidebarGroupContent className="px-2">
+            <TouristPinSearch onPinAdded={handleFlyToCoordinates} />
           </SidebarGroupContent>
-        </SidebarGroup> */}
+        </SidebarGroup>
 
         {/* Trip Days Group */}
         <SidebarGroup className="flex-1 overflow-y-auto">

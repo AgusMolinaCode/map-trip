@@ -3,9 +3,11 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useCallback, useMemo } from 'react'
 import Map, { Marker, Source, Layer, type MapRef } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { useTripStore, type Place, type Day } from '@/hooks/useTripStore'
+import { useTripStore, type Place, type Day, type SearchPin, type PointOfInterest, type RouteProfile } from '@/hooks/useTripStore'
 import { useMapboxRoute } from '@/hooks/useMapboxRoute'
 import { RouteEditor } from '@/components/RouteEditor'
+import { SearchPinPopup } from '@/components/SearchPinPopup'
+import { PoiPinPopup } from '@/components/PoiPinPopup'
 
 // Day colors for markers and areas
 const DAY_COLORS = [
@@ -39,22 +41,24 @@ function RouteSegment({
   dayId: string
   fromPlace: Place
   toPlace: Place
-  profile: string
+  profile: RouteProfile
   color: string
   customRoute?: { geometry: { type: 'LineString'; coordinates: [number, number][] } }
 }) {
   // Only fetch automatic route if no custom route exists
   const shouldFetchRoute = !customRoute
 
-  // Memoize coordinates to prevent infinite loop - use string comparison for stability
+  // Memoize coordinates to prevent infinite loop
+  const fromCoords = fromPlace.coordinates
+  const toCoords = toPlace.coordinates
   const coordinates = useMemo(
-    () => (shouldFetchRoute ? [fromPlace.coordinates, toPlace.coordinates] : []),
-    [shouldFetchRoute, JSON.stringify(fromPlace.coordinates), JSON.stringify(toPlace.coordinates)]
+    () => (shouldFetchRoute ? [fromCoords, toCoords] : []),
+    [shouldFetchRoute, fromCoords, toCoords]
   )
 
   const { geometry } = useMapboxRoute({
     coordinates,
-    profile: profile as any,
+    profile,
   })
 
   // Use custom route if available, otherwise use automatic route
@@ -130,9 +134,21 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
     toPlace: Place
   } | null>(null)
 
+  // State for search pin popup
+  const [selectedSearchPin, setSelectedSearchPin] = useState<SearchPin | null>(null)
+
+  // State for POI pin popup
+  const [selectedPoi, setSelectedPoi] = useState<{ dayId: string; poi: PointOfInterest } | null>(
+    null
+  )
+
   const days = useTripStore((state) => state.days)
+  const searchPins = useTripStore((state) => state.searchPins)
+  const addPlace = useTripStore((state) => state.addPlace)
   const updatePlaceCoordinates = useTripStore((state) => state.updatePlaceCoordinates)
   const updatePlaceInfo = useTripStore((state) => state.updatePlaceInfo)
+  const updatePoiCoordinates = useTripStore((state) => state.updatePoiCoordinates)
+  const updatePoiInfo = useTripStore((state) => state.updatePoiInfo)
 
   // Reverse geocode coordinates to get place name
   const reverseGeocode = async (lng: number, lat: number) => {
@@ -162,6 +178,9 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
       return null
     }
   }
+
+  // Reverse geocode coordinates for POI (same as place, but kept separate for clarity)
+  const reverseGeocodePoi = reverseGeocode
 
   // Fly to place
   const flyToPlace = useCallback((place: Place) => {
@@ -247,6 +266,21 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
       )
     }
   }, [days])
+
+  // Handler for adding search pin to a day
+  const handleAddSearchPinToDay = useCallback((dayId: string) => {
+    if (!selectedSearchPin) return
+
+    const newPlace: Place = {
+      id: `place-${Date.now()}`,
+      name: selectedSearchPin.name,
+      coordinates: selectedSearchPin.coordinates,
+      address: selectedSearchPin.address,
+      bbox: selectedSearchPin.bbox,
+    }
+
+    addPlace(dayId, newPlace)
+  }, [selectedSearchPin, addPlace])
 
   // Handler for pin click to edit route
   const handlePinClick = (dayId: string, placeIndex: number, place: Place) => {
@@ -396,7 +430,136 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
             </Marker>
           ))
         })}
+
+        {/* Render POI markers (standalone pins) */}
+        {days.map((day, dayIndex) => {
+          const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
+
+          return (day.pointsOfInterest || []).map((poi) => (
+            <Marker
+              key={poi.id}
+              longitude={poi.coordinates[0]}
+              latitude={poi.coordinates[1]}
+              anchor="bottom"
+              draggable
+              onDragEnd={async (e) => {
+                const newCoords: [number, number] = [e.lngLat.lng, e.lngLat.lat]
+                updatePoiCoordinates(day.id, poi.id, newCoords)
+
+                const locationInfo = await reverseGeocodePoi(newCoords[0], newCoords[1])
+                if (locationInfo) {
+                  // Si movés el pin a otra ciudad, actualizamos el nombre sugerido automáticamente
+                  updatePoiInfo(day.id, poi.id, locationInfo.name, locationInfo.address)
+                }
+              }}
+              onClick={(e) => {
+                e.originalEvent.stopPropagation()
+                setSelectedPoi({ dayId: day.id, poi })
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: color,
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                  padding: '6px 8px',
+                  borderRadius: '999px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                  cursor: 'move',
+                  maxWidth: 180,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+                title="Arrastra para mover • Click para editar"
+              >
+                {poi.name}
+              </div>
+            </Marker>
+          ))
+        })}
+
+        {/* Render search pins (tourist exploration pins) */}
+        {searchPins.map((pin) => (
+          <Marker
+            key={pin.id}
+            longitude={pin.coordinates[0]}
+            latitude={pin.coordinates[1]}
+            anchor="bottom"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation()
+              setSelectedSearchPin(pin)
+            }}
+          >
+            <div
+              style={{
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+              }}
+              title={`${pin.name} - Click para agregar a un dia`}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.15)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            >
+              <svg
+                width="32"
+                height="40"
+                viewBox="0 0 32 40"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M16 0C7.164 0 0 7.164 0 16c0 12 16 24 16 24s16-12 16-24c0-8.836-7.164-16-16-16z"
+                  fill="#F97316"
+                />
+                <circle cx="16" cy="16" r="8" fill="white" />
+                <circle cx="16" cy="16" r="4" fill="#F97316" />
+              </svg>
+            </div>
+          </Marker>
+        ))}
       </Map>
+
+      {/* Search Pin Popup */}
+      {selectedSearchPin && (
+        <div
+          className="absolute z-20"
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <SearchPinPopup
+            pin={selectedSearchPin}
+            onClose={() => setSelectedSearchPin(null)}
+            onAddToDay={handleAddSearchPinToDay}
+          />
+        </div>
+      )}
+
+      {/* POI Pin Popup */}
+      {selectedPoi && (
+        <div
+          className="absolute z-20"
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <PoiPinPopup
+            key={selectedPoi.poi.id}
+            dayId={selectedPoi.dayId}
+            poi={selectedPoi.poi}
+            onClose={() => setSelectedPoi(null)}
+          />
+        </div>
+      )}
 
       {/* Route Editor Panel */}
       {editingRoute && (
