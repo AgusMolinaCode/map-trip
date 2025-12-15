@@ -3,7 +3,7 @@
 export default function Home() {
   return (
     <div className="flex h-screen w-full">
-      <div>HOME</div>
+      <div>HOME 1</div>
     </div>
   );
 }
