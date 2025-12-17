@@ -40,12 +40,12 @@ export function AppSidebar() {
 
       <SidebarContent>
         {/* Tourist Place Search */}
-        <SidebarGroup className="shrink-0">
+        {/* <SidebarGroup className="shrink-0">
           <SidebarGroupLabel>Buscar lugares</SidebarGroupLabel>
           <SidebarGroupContent className="px-2">
             <TouristPinSearch onPinAdded={handleFlyToCoordinates} />
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup> */}
 
         {/* Trip Days Group */}
         <SidebarGroup className="flex-1 overflow-y-auto">

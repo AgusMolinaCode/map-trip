@@ -454,7 +454,12 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
               }}
               onClick={(e) => {
                 e.originalEvent.stopPropagation()
-                setSelectedPoi({ dayId: day.id, poi })
+                // Toggle: si el mismo POI ya está seleccionado, cerrar
+                if (selectedPoi?.poi.id === poi.id && selectedPoi?.dayId === day.id) {
+                  setSelectedPoi(null)
+                } else {
+                  setSelectedPoi({ dayId: day.id, poi })
+                }
               }}
             >
               <div
@@ -489,7 +494,12 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
             anchor="bottom"
             onClick={(e) => {
               e.originalEvent.stopPropagation()
-              setSelectedSearchPin(pin)
+              // Toggle: si el mismo pin ya está seleccionado, cerrar
+              if (selectedSearchPin?.id === pin.id) {
+                setSelectedSearchPin(null)
+              } else {
+                setSelectedSearchPin(pin)
+              }
             }}
           >
             <div
@@ -526,39 +536,55 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
 
       {/* Search Pin Popup */}
       {selectedSearchPin && (
-        <div
-          className="absolute z-20"
-          style={{
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          <SearchPinPopup
-            pin={selectedSearchPin}
-            onClose={() => setSelectedSearchPin(null)}
-            onAddToDay={handleAddSearchPinToDay}
+        <>
+          {/* Backdrop oscuro */}
+          <div
+            className="absolute inset-0 bg-black/40 z-20"
+            onClick={() => setSelectedSearchPin(null)}
           />
-        </div>
+          {/* Popup centrado */}
+          <div
+            className="absolute z-30"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <SearchPinPopup
+              pin={selectedSearchPin}
+              onClose={() => setSelectedSearchPin(null)}
+              onAddToDay={handleAddSearchPinToDay}
+            />
+          </div>
+        </>
       )}
 
       {/* POI Pin Popup */}
       {selectedPoi && (
-        <div
-          className="absolute z-20"
-          style={{
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          <PoiPinPopup
-            key={selectedPoi.poi.id}
-            dayId={selectedPoi.dayId}
-            poi={selectedPoi.poi}
-            onClose={() => setSelectedPoi(null)}
+        <>
+          {/* Backdrop oscuro */}
+          <div
+            className="absolute inset-0 bg-black/40 z-20"
+            onClick={() => setSelectedPoi(null)}
           />
-        </div>
+          {/* Popup centrado */}
+          <div
+            className="absolute z-30"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <PoiPinPopup
+              key={selectedPoi.poi.id}
+              dayId={selectedPoi.dayId}
+              poi={selectedPoi.poi}
+              onClose={() => setSelectedPoi(null)}
+            />
+          </div>
+        </>
       )}
 
       {/* Route Editor Panel */}
