@@ -1,5 +1,17 @@
 import { create } from 'zustand'
 
+// Colores pasteles suaves para fondos de rutas
+export const ROUTE_PASTEL_COLORS = [
+  '#FFE5E5', // Rosa pastel
+  '#E5F3FF', // Azul pastel
+  '#E5FFE5', // Verde pastel
+  '#FFF5E5', // Naranja pastel
+  '#F5E5FF', // Morado pastel
+  '#FFE5F5', // Fucsia pastel
+  '#E5FFFF', // Cyan pastel
+  '#FFFAE5', // Amarillo pastel
+]
+
 export interface Place {
   id: string
   name: string
@@ -31,16 +43,26 @@ export interface PointOfInterest {
   coordinates: [number, number]
   address?: string
   note?: string
+  isManual?: boolean // true si fue creado manualmente (no por búsqueda)
+}
+
+// Route - multiple routes per day
+export interface Route {
+  id: string
+  name?: string // "Ruta mañana", "Tour tarde", etc.
+  places: Place[]
+  routeProfile: RouteProfile
+  routeStats?: RouteStats
+  customRoutes?: CustomRoute[]
+  routeColor?: string // Color pastel para el fondo de la ruta
 }
 
 export interface Day {
   id: string
   name: string
-  places: Place[]
+  routes: Route[] // Múltiples rutas por día
   pointsOfInterest: PointOfInterest[]
-  routeProfile: RouteProfile
-  routeStats?: RouteStats
-  customRoutes?: CustomRoute[]
+  dayColor?: string // Color pastel para el día completo (rutas + POIs)
 }
 
 // Search pin for exploring tourist places independently of the route
@@ -55,31 +77,47 @@ export interface SearchPin {
 interface TripStore {
   days: Day[]
   searchPins: SearchPin[]
+
+  // Search pins
   addSearchPin: (pin: Omit<SearchPin, 'id'>) => void
   removeSearchPin: (pinId: string) => void
   clearSearchPins: () => void
+
+  // Day management
   addDay: () => void
   removeDay: (dayId: string) => void
-  addPlace: (dayId: string, place: Place) => void
-  removePlace: (dayId: string, placeId: string) => void
-  reorderPlaces: (dayId: string, places: Place[]) => void
-  updatePlaceCoordinates: (dayId: string, placeId: string, coordinates: [number, number]) => void
-  updatePlaceInfo: (dayId: string, placeId: string, name: string, address: string) => void
-  // Points of Interest actions
+  setDayColor: (dayId: string, color: string) => void
+
+  // Route management
+  addRoute: (dayId: string, name?: string) => void
+  removeRoute: (dayId: string, routeId: string) => void
+
+  // Place management (within a route)
+  addPlace: (dayId: string, routeId: string, place: Place) => void
+  removePlace: (dayId: string, routeId: string, placeId: string) => void
+  reorderPlaces: (dayId: string, routeId: string, places: Place[]) => void
+  updatePlaceCoordinates: (dayId: string, routeId: string, placeId: string, coordinates: [number, number]) => void
+  updatePlaceInfo: (dayId: string, routeId: string, placeId: string, name: string, address: string) => void
+
+  // Route settings
+  setRouteProfile: (dayId: string, routeId: string, profile: RouteProfile) => void
+  updateRouteStats: (dayId: string, routeId: string, stats: RouteStats) => void
+  setCustomRoute: (dayId: string, routeId: string, customRoute: CustomRoute) => void
+  removeCustomRoute: (dayId: string, routeId: string, fromPlaceId: string, toPlaceId: string) => void
+  setRouteColor: (dayId: string, routeId: string, color: string) => void
+
+  // Points of Interest (day-level, not route-specific)
   addPointOfInterest: (dayId: string, poi: Omit<PointOfInterest, 'id'>) => void
   removePointOfInterest: (dayId: string, poiId: string) => void
   updatePoiCoordinates: (dayId: string, poiId: string, coordinates: [number, number]) => void
   updatePoiInfo: (dayId: string, poiId: string, name: string, address: string) => void
-  setRouteProfile: (dayId: string, profile: RouteProfile) => void
-  updateRouteStats: (dayId: string, stats: RouteStats) => void
-  setCustomRoute: (dayId: string, customRoute: CustomRoute) => void
-  removeCustomRoute: (dayId: string, fromPlaceId: string, toPlaceId: string) => void
 }
 
 export const useTripStore = create<TripStore>((set) => ({
   days: [],
   searchPins: [],
 
+  // Search pins
   addSearchPin: (pin) =>
     set((state) => ({
       searchPins: [
@@ -101,80 +139,250 @@ export const useTripStore = create<TripStore>((set) => ({
       searchPins: [],
     })),
 
+  // Day management
   addDay: () =>
-    set((state) => ({
-      days: [
-        ...state.days,
-        {
-          id: `day-${Date.now()}`,
-          name: `Dia ${state.days.length + 1}`,
-          places: [],
-          pointsOfInterest: [],
-          routeProfile: 'driving',
-          routeStats: undefined,
-        },
-      ],
-    })),
+    set((state) => {
+      const defaultColor = ROUTE_PASTEL_COLORS[state.days.length % ROUTE_PASTEL_COLORS.length]
+      return {
+        days: [
+          ...state.days,
+          {
+            id: `day-${Date.now()}`,
+            name: `Dia ${state.days.length + 1}`,
+            routes: [],
+            pointsOfInterest: [],
+            dayColor: defaultColor,
+          },
+        ],
+      }
+    }),
 
   removeDay: (dayId) =>
     set((state) => ({
       days: state.days.filter((day) => day.id !== dayId),
     })),
 
-  addPlace: (dayId, place) =>
+  setDayColor: (dayId, color) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId ? { ...day, dayColor: color } : day
+      ),
+    })),
+
+  // Route management
+  addRoute: (dayId, name) =>
+    set((state) => ({
+      days: state.days.map((day) => {
+        if (day.id !== dayId) return day
+
+        return {
+          ...day,
+          routes: [
+            ...day.routes,
+            {
+              id: `route-${Date.now()}-${Math.random()}`, // Más único para evitar colisiones
+              name: name, // Solo usar nombre si se proporciona explícitamente
+              places: [],
+              routeProfile: 'driving',
+            },
+          ],
+        }
+      }),
+    })),
+
+  removeRoute: (dayId, routeId) =>
     set((state) => ({
       days: state.days.map((day) =>
         day.id === dayId
-          ? { ...day, places: [...day.places, place] }
+          ? { ...day, routes: day.routes.filter((r) => r.id !== routeId) }
           : day
       ),
     })),
 
-  removePlace: (dayId, placeId) =>
-    set((state) => ({
-      days: state.days.map((day) =>
-        day.id === dayId
-          ? { ...day, places: day.places.filter((p) => p.id !== placeId) }
-          : day
-      ),
-    })),
-
-  reorderPlaces: (dayId, places) =>
-    set((state) => ({
-      days: state.days.map((day) =>
-        day.id === dayId ? { ...day, places } : day
-      ),
-    })),
-
-  updatePlaceCoordinates: (dayId, placeId, coordinates) =>
+  // Place management
+  addPlace: (dayId, routeId, place) =>
     set((state) => ({
       days: state.days.map((day) =>
         day.id === dayId
           ? {
               ...day,
-              places: day.places.map((place) =>
-                place.id === placeId ? { ...place, coordinates } : place
+              routes: day.routes.map((route) =>
+                route.id === routeId
+                  ? { ...route, places: [...route.places, place] }
+                  : route
               ),
             }
           : day
       ),
     })),
 
-  updatePlaceInfo: (dayId, placeId, name, address) =>
+  removePlace: (dayId, routeId, placeId) =>
     set((state) => ({
       days: state.days.map((day) =>
         day.id === dayId
           ? {
               ...day,
-              places: day.places.map((place) =>
-                place.id === placeId ? { ...place, name, address } : place
+              routes: day.routes.map((route) =>
+                route.id === routeId
+                  ? { ...route, places: route.places.filter((p) => p.id !== placeId) }
+                  : route
               ),
             }
           : day
       ),
     })),
 
-  // Points of Interest implementations
+  reorderPlaces: (dayId, routeId, places) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              routes: day.routes.map((route) =>
+                route.id === routeId ? { ...route, places } : route
+              ),
+            }
+          : day
+      ),
+    })),
+
+  updatePlaceCoordinates: (dayId, routeId, placeId, coordinates) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              routes: day.routes.map((route) =>
+                route.id === routeId
+                  ? {
+                      ...route,
+                      places: route.places.map((place) =>
+                        place.id === placeId ? { ...place, coordinates } : place
+                      ),
+                    }
+                  : route
+              ),
+            }
+          : day
+      ),
+    })),
+
+  updatePlaceInfo: (dayId, routeId, placeId, name, address) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              routes: day.routes.map((route) =>
+                route.id === routeId
+                  ? {
+                      ...route,
+                      places: route.places.map((place) =>
+                        place.id === placeId ? { ...place, name, address } : place
+                      ),
+                    }
+                  : route
+              ),
+            }
+          : day
+      ),
+    })),
+
+  // Route settings
+  setRouteProfile: (dayId, routeId, profile) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              routes: day.routes.map((route) =>
+                route.id === routeId ? { ...route, routeProfile: profile } : route
+              ),
+            }
+          : day
+      ),
+    })),
+
+  updateRouteStats: (dayId, routeId, stats) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              routes: day.routes.map((route) =>
+                route.id === routeId ? { ...route, routeStats: stats } : route
+              ),
+            }
+          : day
+      ),
+    })),
+
+  setCustomRoute: (dayId, routeId, customRoute) =>
+    set((state) => ({
+      days: state.days.map((day) => {
+        if (day.id !== dayId) return day
+
+        return {
+          ...day,
+          routes: day.routes.map((route) => {
+            if (route.id !== routeId) return route
+
+            const existingRoutes = route.customRoutes || []
+            const routeIndex = existingRoutes.findIndex(
+              (r) =>
+                r.fromPlaceId === customRoute.fromPlaceId &&
+                r.toPlaceId === customRoute.toPlaceId
+            )
+
+            let newCustomRoutes
+            if (routeIndex >= 0) {
+              newCustomRoutes = [...existingRoutes]
+              newCustomRoutes[routeIndex] = customRoute
+            } else {
+              newCustomRoutes = [...existingRoutes, customRoute]
+            }
+
+            return { ...route, customRoutes: newCustomRoutes }
+          }),
+        }
+      }),
+    })),
+
+  removeCustomRoute: (dayId, routeId, fromPlaceId, toPlaceId) =>
+    set((state) => ({
+      days: state.days.map((day) => {
+        if (day.id !== dayId) return day
+
+        return {
+          ...day,
+          routes: day.routes.map((route) => {
+            if (route.id !== routeId) return route
+
+            const customRoutes = (route.customRoutes || []).filter(
+              (r) => !(r.fromPlaceId === fromPlaceId && r.toPlaceId === toPlaceId)
+            )
+
+            return { ...route, customRoutes }
+          }),
+        }
+      }),
+    })),
+
+  setRouteColor: (dayId, routeId, color) =>
+    set((state) => ({
+      days: state.days.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              routes: day.routes.map((route) =>
+                route.id === routeId ? { ...route, routeColor: color } : route
+              ),
+            }
+          : day
+      ),
+    })),
+
+  // Points of Interest
   addPointOfInterest: (dayId, poi) =>
     set((state) => ({
       days: state.days.map((day) =>
@@ -228,58 +436,5 @@ export const useTripStore = create<TripStore>((set) => ({
             }
           : day
       ),
-    })),
-
-  setRouteProfile: (dayId, profile) =>
-    set((state) => ({
-      days: state.days.map((day) =>
-        day.id === dayId ? { ...day, routeProfile: profile } : day
-      ),
-    })),
-
-  updateRouteStats: (dayId, stats) =>
-    set((state) => ({
-      days: state.days.map((day) =>
-        day.id === dayId ? { ...day, routeStats: stats } : day
-      ),
-    })),
-
-  setCustomRoute: (dayId, customRoute) =>
-    set((state) => ({
-      days: state.days.map((day) => {
-        if (day.id !== dayId) return day
-
-        const existingRoutes = day.customRoutes || []
-        const routeIndex = existingRoutes.findIndex(
-          (r) =>
-            r.fromPlaceId === customRoute.fromPlaceId &&
-            r.toPlaceId === customRoute.toPlaceId
-        )
-
-        let newCustomRoutes
-        if (routeIndex >= 0) {
-          // Update existing route
-          newCustomRoutes = [...existingRoutes]
-          newCustomRoutes[routeIndex] = customRoute
-        } else {
-          // Add new route
-          newCustomRoutes = [...existingRoutes, customRoute]
-        }
-
-        return { ...day, customRoutes: newCustomRoutes }
-      }),
-    })),
-
-  removeCustomRoute: (dayId, fromPlaceId, toPlaceId) =>
-    set((state) => ({
-      days: state.days.map((day) => {
-        if (day.id !== dayId) return day
-
-        const customRoutes = (day.customRoutes || []).filter(
-          (r) => !(r.fromPlaceId === fromPlaceId && r.toPlaceId === toPlaceId)
-        )
-
-        return { ...day, customRoutes }
-      }),
     })),
 }))

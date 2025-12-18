@@ -27,6 +27,7 @@ interface MapViewProps {
 
 export interface MapViewRef {
   flyToPlace: (place: Place) => void
+  getCenter: () => [number, number] | null
 }
 
 // Component to render a single segment route (between two places)
@@ -93,27 +94,31 @@ function RouteSegment({
 
 // Component to render all routes for a day
 function DayRoutes({ day, color }: { day: Day; color: string }) {
-  if (day.places.length < 2) return null
+  if (!day.routes || day.routes.length === 0) return null
 
   return (
     <>
-      {day.places.slice(0, -1).map((place, index) => {
-        const nextPlace = day.places[index + 1]
-        const customRoute = day.customRoutes?.find(
-          (r) => r.fromPlaceId === place.id && r.toPlaceId === nextPlace.id
-        )
+      {day.routes.map((route) => {
+        if (route.places.length < 2) return null
 
-        return (
-          <RouteSegment
-            key={`${place.id}-${nextPlace.id}`}
-            dayId={day.id}
-            fromPlace={place}
-            toPlace={nextPlace}
-            profile={day.routeProfile}
-            color={color}
-            customRoute={customRoute}
-          />
-        )
+        return route.places.slice(0, -1).map((place, index) => {
+          const nextPlace = route.places[index + 1]
+          const customRoute = route.customRoutes?.find(
+            (r) => r.fromPlaceId === place.id && r.toPlaceId === nextPlace.id
+          )
+
+          return (
+            <RouteSegment
+              key={`${route.id}-${place.id}-${nextPlace.id}`}
+              dayId={day.id}
+              fromPlace={place}
+              toPlace={nextPlace}
+              profile={route.routeProfile}
+              color={color}
+              customRoute={customRoute}
+            />
+          )
+        })
       })}
     </>
   )
@@ -130,6 +135,7 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
   // State for route editing
   const [editingRoute, setEditingRoute] = useState<{
     dayId: string
+    routeId: string
     fromPlace: Place
     toPlace: Place
   } | null>(null)
@@ -145,6 +151,7 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
   const days = useTripStore((state) => state.days)
   const searchPins = useTripStore((state) => state.searchPins)
   const addPlace = useTripStore((state) => state.addPlace)
+  const addRoute = useTripStore((state) => state.addRoute)
   const updatePlaceCoordinates = useTripStore((state) => state.updatePlaceCoordinates)
   const updatePlaceInfo = useTripStore((state) => state.updatePlaceInfo)
   const updatePoiCoordinates = useTripStore((state) => state.updatePoiCoordinates)
@@ -209,16 +216,26 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
     }
   }, [])
 
-  // Expose flyTo method via ref
+  // Get current map center
+  const getCenter = useCallback((): [number, number] | null => {
+    if (!mapRef.current) return null
+    const center = mapRef.current.getCenter()
+    return [center.lng, center.lat]
+  }, [])
+
+  // Expose methods via ref
   useImperativeHandle(ref, () => ({
     flyToPlace,
+    getCenter,
   }))
 
   // Fit bounds to show all places when days change
   useEffect(() => {
     if (!mapRef.current) return
 
-    const allPlaces = days.flatMap((day) => day.places)
+    const allPlaces = days.flatMap((day) =>
+      day.routes.flatMap((route) => route.places)
+    )
     if (allPlaces.length === 0) return
 
     // Calculate bounds from all places
@@ -271,6 +288,9 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
   const handleAddSearchPinToDay = useCallback((dayId: string) => {
     if (!selectedSearchPin) return
 
+    const day = days.find((d) => d.id === dayId)
+    if (!day) return
+
     const newPlace: Place = {
       id: `place-${Date.now()}`,
       name: selectedSearchPin.name,
@@ -279,23 +299,43 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
       bbox: selectedSearchPin.bbox,
     }
 
-    addPlace(dayId, newPlace)
-  }, [selectedSearchPin, addPlace])
+    // If day has no routes, create first route
+    if (day.routes.length === 0) {
+      addRoute(dayId, 'Ruta 1')
+      // Wait for state update, then add place to the new route
+      setTimeout(() => {
+        const updatedDay = useTripStore.getState().days.find((d) => d.id === dayId)
+        if (updatedDay && updatedDay.routes.length > 0) {
+          addPlace(dayId, updatedDay.routes[0].id, newPlace)
+        }
+      }, 50)
+    } else {
+      // Add to last existing route
+      const lastRoute = day.routes[day.routes.length - 1]
+      addPlace(dayId, lastRoute.id, newPlace)
+    }
+
+    setSelectedSearchPin(null)
+  }, [selectedSearchPin, days, addPlace, addRoute])
 
   // Handler for pin click to edit route
-  const handlePinClick = (dayId: string, placeIndex: number, place: Place) => {
+  const handlePinClick = (dayId: string, routeId: string, placeIndex: number, place: Place) => {
     const day = days.find((d) => d.id === dayId)
     if (!day) return
 
-    // If it's the last place, can't edit route to next
-    if (placeIndex >= day.places.length - 1) {
+    const route = day.routes.find((r) => r.id === routeId)
+    if (!route) return
+
+    // If it's the last place in the route, can't edit route to next
+    if (placeIndex >= route.places.length - 1) {
       onPlaceClick?.(place)
       return
     }
 
-    const nextPlace = day.places[placeIndex + 1]
+    const nextPlace = route.places[placeIndex + 1]
     setEditingRoute({
       dayId,
+      routeId,
       fromPlace: place,
       toPlace: nextPlace,
     })
@@ -316,119 +356,68 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
           return <DayRoutes key={day.id} day={day} color={color} />
         })}
 
-        {/* Render areas for each place */}
-        {days.map((day, dayIndex) => {
-          const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
-
-          return day.places.map((place) => {
-            if (!place.bbox) return null
-
-            const [minLng, minLat, maxLng, maxLat] = place.bbox
-
-            // Create polygon coordinates from bbox
-            const coordinates = [
-              [
-                [minLng, minLat],
-                [maxLng, minLat],
-                [maxLng, maxLat],
-                [minLng, maxLat],
-                [minLng, minLat],
-              ],
-            ]
-
-            return (
-              <Source
-                key={`area-${place.id}`}
-                id={`area-${place.id}`}
-                type="geojson"
-                data={{
-                  type: 'Feature',
-                  properties: {},
-                  geometry: {
-                    type: 'Polygon',
-                    coordinates,
-                  },
-                }}
-              >
-                {/* Fill layer */}
-                <Layer
-                  id={`area-${place.id}-fill`}
-                  type="fill"
-                  paint={{
-                    'fill-color': color,
-                    'fill-opacity': 0.2,
-                  }}
-                />
-                {/* Outline layer */}
-                <Layer
-                  id={`area-${place.id}-outline`}
-                  type="line"
-                  paint={{
-                    'line-color': color,
-                    'line-width': 2,
-                    'line-opacity': 0.8,
-                  }}
-                />
-              </Source>
-            )
-          })
-        })}
 
         {/* Render markers with numbers */}
         {days.map((day, dayIndex) => {
           const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
+          let globalPlaceIndex = 0
 
-          return day.places.map((place, placeIndex) => (
-            <Marker
-              key={place.id}
-              longitude={place.coordinates[0]}
-              latitude={place.coordinates[1]}
-              anchor="center"
-              draggable
-              onDragEnd={async (e) => {
-                const newCoords: [number, number] = [e.lngLat.lng, e.lngLat.lat]
-                updatePlaceCoordinates(day.id, place.id, newCoords)
+          return day.routes.map((route) =>
+            route.places.map((place, placeIndex) => {
+              const currentIndex = globalPlaceIndex++
+              return (
+                <Marker
+                  key={place.id}
+                  longitude={place.coordinates[0]}
+                  latitude={place.coordinates[1]}
+                  anchor="center"
+                  draggable
+                  onDragEnd={async (e) => {
+                    const newCoords: [number, number] = [e.lngLat.lng, e.lngLat.lat]
+                    updatePlaceCoordinates(day.id, route.id, place.id, newCoords)
 
-                // Reverse geocode to get new place name
-                const locationInfo = await reverseGeocode(newCoords[0], newCoords[1])
-                if (locationInfo) {
-                  updatePlaceInfo(day.id, place.id, locationInfo.name, locationInfo.address)
-                }
-              }}
-              onClick={(e) => {
-                e.originalEvent.stopPropagation()
-                handlePinClick(day.id, placeIndex, place)
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: 'white',
-                  color,
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: `3px solid ${color}`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                  cursor: 'move',
-                  transition: 'transform 0.2s',
-                }}
-                title="Arrastra para mover • Click para editar ruta"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)'
-                }}
-              >
-                {placeIndex + 1}
-              </div>
-            </Marker>
-          ))
+                    // Reverse geocode to get new place name
+                    const locationInfo = await reverseGeocode(newCoords[0], newCoords[1])
+                    if (locationInfo) {
+                      updatePlaceInfo(day.id, route.id, place.id, locationInfo.name, locationInfo.address)
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.originalEvent.stopPropagation()
+                    handlePinClick(day.id, route.id, placeIndex, place)
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: 'white',
+                      color,
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `3px solid ${color}`,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      cursor: 'move',
+                      transition: 'transform 0.2s',
+                    }}
+                    title="Arrastra para mover • Click para editar ruta"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    {currentIndex + 1}
+                  </div>
+                </Marker>
+              )
+            })
+          )
         })}
 
         {/* Render POI markers (standalone pins) */}
@@ -448,8 +437,9 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
 
                 const locationInfo = await reverseGeocodePoi(newCoords[0], newCoords[1])
                 if (locationInfo) {
-                  // Si movés el pin a otra ciudad, actualizamos el nombre sugerido automáticamente
-                  updatePoiInfo(day.id, poi.id, locationInfo.name, locationInfo.address)
+                  // Si es manual, mantener el nombre original; solo actualizar la dirección
+                  const nameToUse = poi.isManual ? poi.name : locationInfo.name
+                  updatePoiInfo(day.id, poi.id, nameToUse, locationInfo.address)
                 }
               }}
               onClick={(e) => {
@@ -592,6 +582,7 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
         <RouteEditor
           mapRef={mapRef.current}
           dayId={editingRoute.dayId}
+          routeId={editingRoute.routeId}
           fromPlace={editingRoute.fromPlace}
           toPlace={editingRoute.toPlace}
           onClose={() => setEditingRoute(null)}

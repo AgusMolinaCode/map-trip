@@ -79,7 +79,7 @@ export function SearchPinPopup({ pin, onClose, onAddToDay }: SearchPinPopupProps
                 />
                 <span className="truncate">{day.name}</span>
                 <span className="text-xs text-blue-600 ml-auto">
-                  {day.places.length} lugares
+                  {day.routes.reduce((sum, route) => sum + route.places.length, 0)} lugares
                 </span>
               </Button>
             ))}
