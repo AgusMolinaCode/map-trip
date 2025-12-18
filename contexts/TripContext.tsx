@@ -8,6 +8,7 @@ interface TripContextType {
   mapRef: React.RefObject<MapViewRef | null>
   handlePlaceClick: (place: Place) => void
   handleFlyToCoordinates: (coordinates: [number, number]) => void
+  getMapCenter: () => [number, number] | null
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined)
@@ -29,8 +30,12 @@ export function TripProvider({ children }: { children: ReactNode }) {
     mapRef.current?.flyToPlace(tempPlace)
   }
 
+  const getMapCenter = (): [number, number] | null => {
+    return mapRef.current?.getCenter() ?? null
+  }
+
   return (
-    <TripContext.Provider value={{ mapRef, handlePlaceClick, handleFlyToCoordinates }}>
+    <TripContext.Provider value={{ mapRef, handlePlaceClick, handleFlyToCoordinates, getMapCenter }}>
       {children}
     </TripContext.Provider>
   )

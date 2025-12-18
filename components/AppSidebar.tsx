@@ -40,12 +40,12 @@ export function AppSidebar() {
 
       <SidebarContent>
         {/* Tourist Place Search */}
-        <SidebarGroup className="shrink-0">
+        {/* <SidebarGroup className="shrink-0">
           <SidebarGroupLabel>Buscar lugares</SidebarGroupLabel>
           <SidebarGroupContent className="px-2">
             <TouristPinSearch onPinAdded={handleFlyToCoordinates} />
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup> */}
 
         {/* Trip Days Group */}
         <SidebarGroup className="flex-1 overflow-y-auto">
@@ -81,7 +81,9 @@ export function AppSidebar() {
         <div className="text-xs text-muted-foreground space-y-1">
           <p>Total days: {days.length}</p>
           <p>
-            Total places: {days.reduce((acc, day) => acc + day.places.length, 0)}
+            Total places: {days.reduce((acc, day) =>
+              acc + day.routes.reduce((sum, route) => sum + route.places.length, 0), 0
+            )}
           </p>
         </div>
       </SidebarFooter>

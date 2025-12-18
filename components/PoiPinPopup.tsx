@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MapPin, Save, Trash2, X, Eraser } from 'lucide-react'
+import { MapPin, Save, Trash2, X } from 'lucide-react'
 import { useTripStore, type PointOfInterest } from '@/hooks/useTripStore'
 
 interface PoiPinPopupProps {
@@ -51,31 +51,15 @@ export function PoiPinPopup({ dayId, poi, onClose }: PoiPinPopupProps) {
     onClose()
   }
 
-  const handleClearNote = () => {
-    setNote('')
-    useTripStore.setState((prev) => ({
-      days: prev.days.map((d) =>
-        d.id === dayId
-          ? {
-              ...d,
-              pointsOfInterest: d.pointsOfInterest.map((p) =>
-                p.id === poi.id ? { ...p, note: undefined } : p
-              ),
-            }
-          : d
-      ),
-    }))
-  }
-
   return (
-    <Card className="w-72 p-3 shadow-xl">
+    <Card className="w-72 p-3 shadow-xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-2 flex-1 min-w-0">
           <MapPin className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">Punto de interés</p>
+            <p className="font-medium text-sm truncate text-gray-900">Punto de interés</p>
             {poi.address && (
-              <p className="text-xs text-muted-foreground truncate">{poi.address}</p>
+              <p className="text-xs text-gray-800 truncate">{poi.address}</p>
             )}
           </div>
         </div>
@@ -86,20 +70,19 @@ export function PoiPinPopup({ dayId, poi, onClose }: PoiPinPopupProps) {
 
       <div className="space-y-2">
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground font-medium">Nombre</p>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Mirador" />
+          <p className="text-xs text-gray-800 font-medium">Nombre</p>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Mirador" className='text-gray-700 font-semibold'/>
         </div>
 
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground font-medium">Comentario (opcional)</p>
-          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ej: sacar fotos al atardecer" />
+          <p className="text-xs text-gray-800 font-medium">Comentario (opcional)</p>
+          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ej: sacar fotos al atardecer" className='text-gray-700 font-semibold' />
         </div>
 
         <div className="flex gap-2 pt-2">
           <Button
-            variant="default"
             size="sm"
-            className="flex-1"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             onClick={handleSave}
             disabled={!canSave}
           >
@@ -108,22 +91,13 @@ export function PoiPinPopup({ dayId, poi, onClose }: PoiPinPopupProps) {
           </Button>
 
           <Button
-            variant="outline"
             size="sm"
-            onClick={handleClearNote}
-            title="Quitar comentario"
-          >
-            <Eraser className="h-3 w-3" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-destructive hover:text-destructive"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             onClick={handleDelete}
             title="Eliminar pin"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-3 w-3 mr-1" />
+            Eliminar
           </Button>
         </div>
       </div>

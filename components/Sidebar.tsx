@@ -58,7 +58,9 @@ export function Sidebar({ onPlaceClick }: SidebarProps) {
       <div className="p-4 border-t text-xs text-muted-foreground">
         <p>Total days: {days.length}</p>
         <p>
-          Total places: {days.reduce((acc, day) => acc + day.places.length, 0)}
+          Total places: {days.reduce((acc, day) =>
+            acc + day.routes.reduce((sum, route) => sum + route.places.length, 0), 0
+          )}
         </p>
       </div>
     </Card>

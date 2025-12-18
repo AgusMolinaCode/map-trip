@@ -40,7 +40,7 @@ export function SearchPinPopup({ pin, onClose, onAddToDay }: SearchPinPopupProps
   }
 
   return (
-    <Card className="w-64 p-3 shadow-xl">
+    <Card className="w-64 p-3 shadow-xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-start gap-2 flex-1 min-w-0">
           <MapPin className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
@@ -64,9 +64,8 @@ export function SearchPinPopup({ pin, onClose, onAddToDay }: SearchPinPopupProps
             {days.map((day, index) => (
               <Button
                 key={day.id}
-                variant="outline"
                 size="sm"
-                className="w-full justify-start text-left h-8"
+                className="w-full justify-start text-left h-8 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200"
                 onClick={() => handleAddToDay(day.id)}
               >
                 <div
@@ -79,8 +78,8 @@ export function SearchPinPopup({ pin, onClose, onAddToDay }: SearchPinPopupProps
                   }}
                 />
                 <span className="truncate">{day.name}</span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {day.places.length} lugares
+                <span className="text-xs text-blue-600 ml-auto">
+                  {day.routes.reduce((sum, route) => sum + route.places.length, 0)} lugares
                 </span>
               </Button>
             ))}
@@ -93,19 +92,18 @@ export function SearchPinPopup({ pin, onClose, onAddToDay }: SearchPinPopupProps
 
         <div className="flex gap-2 pt-2 border-t">
           <Button
-            variant="default"
             size="sm"
-            className="flex-1"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             onClick={handleCreateNewDay}
           >
             <Plus className="h-3 w-3 mr-1" />
             Nuevo dia
           </Button>
           <Button
-            variant="ghost"
             size="sm"
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="bg-red-600 hover:bg-red-700 text-white"
             onClick={handleRemove}
+            title="Eliminar pin de búsqueda"
           >
             <X className="h-3 w-3" />
           </Button>

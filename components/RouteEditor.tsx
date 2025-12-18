@@ -13,19 +13,21 @@ import type { IControl } from 'mapbox-gl'
 interface RouteEditorProps {
   mapRef: MapRef | null
   dayId: string
+  routeId: string
   fromPlace: Place
   toPlace: Place
   onClose: () => void
 }
 
-export function RouteEditor({ mapRef, dayId, fromPlace, toPlace, onClose }: RouteEditorProps) {
+export function RouteEditor({ mapRef, dayId, routeId, fromPlace, toPlace, onClose }: RouteEditorProps) {
   const drawRef = useRef<MapboxDraw | null>(null)
   const setCustomRoute = useTripStore((state) => state.setCustomRoute)
   const removeCustomRoute = useTripStore((state) => state.removeCustomRoute)
   const day = useTripStore((state) => state.days.find((d) => d.id === dayId))
+  const route = day?.routes.find((r) => r.id === routeId)
 
   // Check if there's an existing custom route
-  const existingRoute = day?.customRoutes?.find(
+  const existingRoute = route?.customRoutes?.find(
     (r) => r.fromPlaceId === fromPlace.id && r.toPlaceId === toPlace.id
   )
 
@@ -104,7 +106,7 @@ export function RouteEditor({ mapRef, dayId, fromPlace, toPlace, onClose }: Rout
     }
 
     // Save the custom route
-    setCustomRoute(dayId, {
+    setCustomRoute(dayId, routeId, {
       fromPlaceId: fromPlace.id,
       toPlaceId: toPlace.id,
       geometry: {
@@ -118,14 +120,14 @@ export function RouteEditor({ mapRef, dayId, fromPlace, toPlace, onClose }: Rout
 
   const handleDelete = () => {
     if (existingRoute) {
-      removeCustomRoute(dayId, fromPlace.id, toPlace.id)
+      removeCustomRoute(dayId, routeId, fromPlace.id, toPlace.id)
     }
     onClose()
   }
 
   const handleUseAutomatic = () => {
     if (existingRoute) {
-      removeCustomRoute(dayId, fromPlace.id, toPlace.id)
+      removeCustomRoute(dayId, routeId, fromPlace.id, toPlace.id)
     }
     onClose()
   }

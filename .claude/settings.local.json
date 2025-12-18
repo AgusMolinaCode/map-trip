@@ -15,7 +15,14 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_wait_for",
       "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Bash(npm run lint)",
+      "Bash(npm audit:*)",
+      "Bash(npm i:*)",
+      "Bash(if not exist \"claudedocs\" mkdir claudedocs)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []
