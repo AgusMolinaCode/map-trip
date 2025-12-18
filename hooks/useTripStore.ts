@@ -9,7 +9,7 @@ export const ROUTE_PASTEL_COLORS = [
   '#F5E5FF', // Morado pastel
   '#FFE5F5', // Fucsia pastel
   '#E5FFFF', // Cyan pastel
-  '#FFFAE5', // Amarillo pastel
+  '#FFFAE9', // Amarillo pastel
 ]
 
 export interface Place {

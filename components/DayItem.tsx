@@ -197,14 +197,14 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground mr-2"
+              className="h-6 w-6 p-0 text-muted-foreground cursor-pointer mr-2"
               title="Cambiar color del día"
             >
               <Palette className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <div className="grid grid-cols-4 gap-1 p-2">
+          <DropdownMenuContent align="center" className="w-36 bg-gray-500/80">
+            <div className="grid grid-cols-4 gap-1 p-2 ">
               {ROUTE_PASTEL_COLORS.map((color) => (
                 <button
                   key={color}
