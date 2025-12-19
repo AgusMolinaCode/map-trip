@@ -351,15 +351,15 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       >
         {/* Render routes for each day */}
-        {days.map((day, dayIndex) => {
-          const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
+        {days.map((day) => {
+          const color = day.dayColor || DAY_COLORS[0]
           return <DayRoutes key={day.id} day={day} color={color} />
         })}
 
 
         {/* Render markers with numbers */}
-        {days.map((day, dayIndex) => {
-          const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
+        {days.map((day) => {
+          const color = day.dayColor || DAY_COLORS[0]
           let globalPlaceIndex = 0
 
           return day.routes.map((route) =>
@@ -421,8 +421,8 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
         })}
 
         {/* Render POI markers (standalone pins) */}
-        {days.map((day, dayIndex) => {
-          const color = DAY_COLORS[dayIndex % DAY_COLORS.length]
+        {days.map((day) => {
+          const color = day.dayColor || DAY_COLORS[0]
 
           return (day.pointsOfInterest || []).map((poi) => (
             <Marker

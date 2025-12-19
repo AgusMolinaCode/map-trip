@@ -1,15 +1,20 @@
 import { create } from 'zustand'
 
-// Colores pasteles suaves para fondos de rutas
+// UUID generator
+function generateUUID(): string {
+  return crypto.randomUUID()
+}
+
+// Colores vibrantes para rutas, POIs y marcadores
 export const ROUTE_PASTEL_COLORS = [
-  '#FFE5E5', // Rosa pastel
-  '#E5F3FF', // Azul pastel
-  '#E5FFE5', // Verde pastel
-  '#FFF5E5', // Naranja pastel
-  '#F5E5FF', // Morado pastel
-  '#FFE5F5', // Fucsia pastel
-  '#E5FFFF', // Cyan pastel
-  '#FFFAE9', // Amarillo pastel
+  '#EF4444', // Rojo vibrante
+  '#3B82F6', // Azul vibrante
+  '#10B981', // Verde vibrante
+  '#F59E0B', // Naranja vibrante
+  '#8B5CF6', // Morado vibrante
+  '#EC4899', // Rosa vibrante
+  '#06B6D4', // Cyan vibrante
+  '#EAB308', // Amarillo vibrante
 ]
 
 export interface Place {
@@ -124,7 +129,7 @@ export const useTripStore = create<TripStore>((set) => ({
         ...state.searchPins,
         {
           ...pin,
-          id: `search-pin-${Date.now()}`,
+          id: generateUUID(),
         },
       ],
     })),
@@ -147,7 +152,7 @@ export const useTripStore = create<TripStore>((set) => ({
         days: [
           ...state.days,
           {
-            id: `day-${Date.now()}`,
+            id: generateUUID(),
             name: `Dia ${state.days.length + 1}`,
             routes: [],
             pointsOfInterest: [],
@@ -180,7 +185,7 @@ export const useTripStore = create<TripStore>((set) => ({
           routes: [
             ...day.routes,
             {
-              id: `route-${Date.now()}-${Math.random()}`, // Más único para evitar colisiones
+              id: generateUUID(),
               name: name, // Solo usar nombre si se proporciona explícitamente
               places: [],
               routeProfile: 'driving',
@@ -391,7 +396,7 @@ export const useTripStore = create<TripStore>((set) => ({
               ...day,
               pointsOfInterest: [
                 ...day.pointsOfInterest,
-                { ...poi, id: `poi-${Date.now()}` },
+                { ...poi, id: generateUUID() },
               ],
             }
           : day

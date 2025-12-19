@@ -79,9 +79,9 @@ export function AppSidebar() {
       {/* Footer: Statistics */}
       <SidebarFooter className="border-t p-4 shrink-0">
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>Total days: {days.length}</p>
+          <p>Dias totales: {days.length}</p>
           <p>
-            Total places: {days.reduce((acc, day) =>
+            Lugares: {days.reduce((acc, day) =>
               acc + day.routes.reduce((sum, route) => sum + route.places.length, 0), 0
             )}
           </p>

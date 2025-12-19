@@ -164,10 +164,11 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full bg-orange-50 hover:bg-orange-100 hover:shadow-md hover:cursor-pointer text-xs border-orange-200"
+          className="w-full hover:shadow-md hover:cursor-pointer text-xs text-white hover:opacity-90"
+          style={{ backgroundColor: dayColor, borderColor: dayColor }}
           onClick={() => setIsAddingPoi(true)}
         >
-          <MapPinPlus className="h-3 w-3 mr-1 text-orange-500" />
+          <MapPinPlus className="h-3 w-3 mr-1" />
           Punto interes
         </Button>
       )
@@ -178,6 +179,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
       <AddButtons
         onAddPlace={handleStartAddingPlace}
         onAddPoi={() => setIsAddingPoi(true)}
+        dayColor={dayColor}
       />
     )
   }
@@ -194,14 +196,15 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-muted-foreground cursor-pointer mr-2"
+            <div
+              className="h-6 w-6 p-1 text-white cursor-pointer mr-2 inline-flex items-center justify-center rounded-full hover:opacity-90 transition-all"
+              style={{ backgroundColor: dayColor }}
               title="Cambiar color del día"
+              role="button"
+              tabIndex={0}
             >
               <Palette className="h-3 w-3" />
-            </Button>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center" className="w-36 bg-gray-500/80">
             <div className="grid grid-cols-4 gap-1 p-2 ">
@@ -251,7 +254,8 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-xs bg-zinc-100 cursor-pointer hover:shadow-md"
+              className="w-full text-xs cursor-pointer hover:shadow-md text-white hover:opacity-90"
+              style={{ backgroundColor: dayColor, borderColor: dayColor }}
               onClick={handleAddNewRoute}
             >
               <Plus className="h-3 w-3 mr-1" />
@@ -264,6 +268,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             pois={day.pointsOfInterest}
             onPoiClick={onPlaceClick}
             onRemove={(poiId) => removePointOfInterest(day.id, poiId)}
+            dayColor={dayColor}
           />
 
           {/* Botón Punto interes (cuando ya hay al menos 1 POI) */}
@@ -271,10 +276,11 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full bg-orange-50 hover:bg-orange-100 hover:shadow-md hover:cursor-pointer text-xs border-orange-200"
+              className="w-full hover:shadow-md hover:cursor-pointer text-xs text-white hover:opacity-90"
+              style={{ backgroundColor: dayColor, borderColor: dayColor }}
               onClick={() => setIsAddingPoi(true)}
             >
-              <MapPinPlus className="h-3 w-3 mr-1 text-orange-500" />
+              <MapPinPlus className="h-3 w-3 mr-1" />
               Punto interes
             </Button>
           )}
@@ -290,7 +296,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-destructive hover:text-destructive hover:cursor-pointer"
+            className="w-full text-destructive hover:text-destructive hover:cursor-pointer bg-red-100 hover:bg-red-200 border-red-400 border"
             onClick={() => removeDay(day.id)}
           >
             <Trash2 className="h-4 w-4 mr-2" />

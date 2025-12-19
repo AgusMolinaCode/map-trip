@@ -60,10 +60,21 @@ export function RouteSection({ dayId, route, routeIndex, dayColor, onPlaceClick,
 
   if (route.places.length === 0 && !isAddingPlace) return null
 
+  // Convertir hex a rgba para transparencia
+  const hexToRgba = (hex: string, alpha: number = 0.15) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
   return (
     <div
       className="space-y-2 p-3 border rounded-lg"
-      style={{ backgroundColor: dayColor }}
+      style={{
+        backgroundColor: hexToRgba(dayColor),
+        borderColor: dayColor
+      }}
     >
       {/* Header de la ruta */}
       <div className="flex items-center justify-between">
@@ -109,7 +120,8 @@ export function RouteSection({ dayId, route, routeIndex, dayColor, onPlaceClick,
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-xs bg-accent cursor-pointer hover:shadow-md"
+          className="w-full text-xs cursor-pointer hover:shadow-md text-white hover:opacity-90"
+          style={{ backgroundColor: dayColor, borderColor: dayColor }}
           onClick={() => setIsAddingPlace(true)}
         >
           <Plus className="h-3 w-3 mr-1" />
