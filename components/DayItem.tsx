@@ -69,7 +69,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
 
   const handleAddPlace = (place: { name: string; coordinates: [number, number]; address: string }) => {
     if (!addingPlaceToRouteId) return
-    addPlace(day.id, addingPlaceToRouteId, { id: `place-${Date.now()}`, ...place })
+    addPlace(day.id, addingPlaceToRouteId, { id: crypto.randomUUID(), ...place })
     setAddingPlaceToRouteId(null)
   }
 
@@ -164,7 +164,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full hover:shadow-md hover:cursor-pointer text-xs text-white hover:opacity-90"
+          className="w-full hover:shadow-md hover:cursor-pointer text-xs text-white hover:text-white active:text-white hover:opacity-90"
           style={{ backgroundColor: dayColor, borderColor: dayColor }}
           onClick={() => setIsAddingPoi(true)}
         >
@@ -254,7 +254,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-xs cursor-pointer hover:shadow-md text-white hover:opacity-90"
+              className="w-full text-xs cursor-pointer hover:shadow-md text-white hover:text-white active:text-white hover:opacity-90"
               style={{ backgroundColor: dayColor, borderColor: dayColor }}
               onClick={handleAddNewRoute}
             >
@@ -271,18 +271,34 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
             dayColor={dayColor}
           />
 
-          {/* Botón Punto interes (cuando ya hay al menos 1 POI) */}
+          {/* Botones cuando ya hay POIs */}
           {hasPointsOfInterest && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full hover:shadow-md hover:cursor-pointer text-xs text-white hover:opacity-90"
-              style={{ backgroundColor: dayColor, borderColor: dayColor }}
-              onClick={() => setIsAddingPoi(true)}
-            >
-              <MapPinPlus className="h-3 w-3 mr-1" />
-              Punto interes
-            </Button>
+            <div className="flex gap-2">
+              {/* Botón Agregar destino (solo si no hay lugares en rutas) */}
+              {!hasPlacesInRoutes && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 hover:shadow-md hover:cursor-pointer text-xs text-white hover:text-white active:text-white"
+                  style={{ backgroundColor: dayColor, borderColor: dayColor }}
+                  onClick={handleStartAddingPlace}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Agregar destino
+                </Button>
+              )}
+              {/* Botón Punto interes */}
+              <Button
+                variant="outline"
+                size="sm"
+                className={`${!hasPlacesInRoutes ? 'flex-1' : 'w-full'} hover:shadow-md hover:cursor-pointer text-xs text-white hover:text-white active:text-white`}
+                style={{ backgroundColor: dayColor, borderColor: dayColor }}
+                onClick={() => setIsAddingPoi(true)}
+              >
+                <MapPinPlus className="h-3 w-3 mr-1" />
+                Punto interes
+              </Button>
+            </div>
           )}
 
           {/* Empty state */}

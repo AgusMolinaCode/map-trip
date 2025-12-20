@@ -15,7 +15,7 @@ export function AddButtons({ onAddPlace, onAddPoi, dayColor }: AddButtonsProps) 
       <Button
         variant="outline"
         size="sm"
-        className="flex-1 hover:shadow-md hover:cursor-pointer text-xs text-white hover:opacity-90"
+        className="flex-1 hover:shadow-md hover:cursor-pointer text-xs text-white hover:text-white active:text-white"
         style={{ backgroundColor: dayColor, borderColor: dayColor }}
         onClick={onAddPlace}
       >
@@ -26,7 +26,7 @@ export function AddButtons({ onAddPlace, onAddPoi, dayColor }: AddButtonsProps) 
       <Button
         variant="outline"
         size="sm"
-        className="flex-1 hover:shadow-md hover:cursor-pointer text-xs text-white hover:opacity-90"
+        className="flex-1 hover:shadow-md hover:cursor-pointer text-xs text-white hover:text-white active:text-white"
         style={{ backgroundColor: dayColor, borderColor: dayColor }}
         onClick={onAddPoi}
       >

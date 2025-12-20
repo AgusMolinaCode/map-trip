@@ -292,7 +292,7 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
     if (!day) return
 
     const newPlace: Place = {
-      id: `place-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: selectedSearchPin.name,
       coordinates: selectedSearchPin.coordinates,
       address: selectedSearchPin.address,

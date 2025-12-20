@@ -308,26 +308,31 @@ export async function saveRoute(
   route: Route,
   position: number
 ): Promise<string | null> {
+  const routeData = {
+    id: route.id,
+    day_id: dayId,
+    name: route.name || null,
+    route_profile: route.routeProfile,
+    route_color: route.routeColor || null,
+    distance_meters: route.routeStats?.distance || null,
+    duration_seconds: route.routeStats?.duration || null,
+    position,
+  }
+
+  console.log('📍 Saving route:', routeData)
+
   const { data, error } = await supabase
     .from('routes')
-    .upsert({
-      id: route.id,
-      day_id: dayId,
-      name: route.name || null,
-      route_profile: route.routeProfile,
-      route_color: route.routeColor || null,
-      distance_meters: route.routeStats?.distance || null,
-      duration_seconds: route.routeStats?.duration || null,
-      position,
-    })
+    .upsert(routeData)
     .select('id')
     .single()
 
   if (error) {
-    console.error('Error saving route:', error)
+    console.error('❌ Error saving route:', error.message, error.code, error.details)
     return null
   }
 
+  console.log('✅ Route saved:', data.id)
   return data.id
 }
 
@@ -351,29 +356,34 @@ export async function savePlace(
   place: Place,
   position: number
 ): Promise<string | null> {
+  const placeData = {
+    id: place.id,
+    route_id: routeId,
+    name: place.name,
+    address: place.address || null,
+    lng: place.coordinates[0],
+    lat: place.coordinates[1],
+    bbox_min_lng: place.bbox?.[0] || null,
+    bbox_min_lat: place.bbox?.[1] || null,
+    bbox_max_lng: place.bbox?.[2] || null,
+    bbox_max_lat: place.bbox?.[3] || null,
+    position,
+  }
+
+  console.log('📌 Saving place:', placeData)
+
   const { data, error } = await supabase
     .from('places')
-    .upsert({
-      id: place.id,
-      route_id: routeId,
-      name: place.name,
-      address: place.address || null,
-      lng: place.coordinates[0],
-      lat: place.coordinates[1],
-      bbox_min_lng: place.bbox?.[0] || null,
-      bbox_min_lat: place.bbox?.[1] || null,
-      bbox_max_lng: place.bbox?.[2] || null,
-      bbox_max_lat: place.bbox?.[3] || null,
-      position,
-    })
+    .upsert(placeData)
     .select('id')
     .single()
 
   if (error) {
-    console.error('Error saving place:', error)
+    console.error('❌ Error saving place:', error.message, error.code, error.details)
     return null
   }
 
+  console.log('✅ Place saved:', data.id)
   return data.id
 }
 
@@ -554,6 +564,23 @@ export async function syncTripToDb(
   searchPins: SearchPin[]
 ): Promise<boolean> {
   try {
+    // Debug: Log what we're syncing
+    console.log('🔄 Syncing trip to DB:', {
+      tripId,
+      daysCount: days.length,
+      days: days.map(d => ({
+        id: d.id,
+        name: d.name,
+        routesCount: d.routes.length,
+        routes: d.routes.map(r => ({
+          id: r.id,
+          placesCount: r.places.length,
+          places: r.places.map(p => ({ id: p.id, name: p.name }))
+        })),
+        poisCount: d.pointsOfInterest.length
+      }))
+    })
+
     // Get existing days to detect deletions
     const { data: existingDays } = await supabase
       .from('days')

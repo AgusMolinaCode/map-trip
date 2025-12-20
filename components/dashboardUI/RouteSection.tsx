@@ -54,7 +54,7 @@ export function RouteSection({ dayId, route, routeIndex, dayColor, onPlaceClick,
   }
 
   const handleAddPlace = (place: { name: string; coordinates: [number, number]; address: string }) => {
-    addPlace(dayId, route.id, { id: `place-${Date.now()}`, ...place })
+    addPlace(dayId, route.id, { id: crypto.randomUUID(), ...place })
     setIsAddingPlace(false)
   }
 
@@ -120,7 +120,7 @@ export function RouteSection({ dayId, route, routeIndex, dayColor, onPlaceClick,
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-xs cursor-pointer hover:shadow-md text-white hover:opacity-90"
+          className="w-full text-xs cursor-pointer hover:shadow-md text-white hover:text-white active:text-white hover:opacity-90"
           style={{ backgroundColor: dayColor, borderColor: dayColor }}
           onClick={() => setIsAddingPlace(true)}
         >
