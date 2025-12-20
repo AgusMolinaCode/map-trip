@@ -1,9 +1,5 @@
-"use client";
+import { AuthForm } from '@/components/AuthForm'
 
-export default function Home() {
-  return (
-    <div className="flex h-screen w-full">
-      <div>HOME 1</div>
-    </div>
-  );
+export default function HomePage() {
+  return <AuthForm />
 }

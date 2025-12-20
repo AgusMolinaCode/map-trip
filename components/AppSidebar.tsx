@@ -1,6 +1,7 @@
 "use client";
 
-import { Map, Plus, Loader2 } from "lucide-react";
+import { Map, Plus, Loader2, LogOut } from "lucide-react";
+import { signout } from "@/app/actions";
 import {
   Sidebar,
   SidebarContent,
@@ -74,7 +75,7 @@ export function AppSidebar() {
                   </p>
                 </div>
                 {/* Skeleton placeholders */}
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   {[1, 2].map((i) => (
                     <div key={i} className="space-y-2 p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
@@ -85,7 +86,7 @@ export function AppSidebar() {
                       <Skeleton className="h-8 w-full" />
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
             ) : days.length === 0 ? (
               <div className="text-center py-8 px-4">
@@ -112,8 +113,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer: Statistics */}
-      <SidebarFooter className="border-t p-4 shrink-0">
+      {/* Footer: Statistics + Logout */}
+      <SidebarFooter className="border-t p-4 shrink-0 space-y-3">
         {isLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -136,6 +137,17 @@ export function AppSidebar() {
             </p>
           </div>
         )}
+        <form action={signout}>
+          <Button
+            type="submit"
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Cerrar sesión
+          </Button>
+        </form>
       </SidebarFooter>
     </Sidebar>
   );
