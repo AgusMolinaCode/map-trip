@@ -144,7 +144,7 @@ export function DayItem({ day, dayIndex, onPlaceClick }: DayItemProps) {
               size="sm"
               className="h-9 w-9 p-0 border-orange-300 text-orange-600 hover:bg-orange-50 flex-shrink-0 bg-gray-100"
               onClick={() => { setIsAddingPoi(false); setIsAddingManualPoi(true) }}
-              title="Colocar manualmente"
+              title="Colocar manualment"
             >
               <MapPinPlus className="h-4 w-4" />
             </Button>
