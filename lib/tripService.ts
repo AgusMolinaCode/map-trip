@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { createClient } from '@/utils/supabase/client'
 import type {
   DbTrip,
   DbDay,
@@ -118,9 +118,19 @@ function dbSearchPinToZustand(dbPin: DbSearchPin): SearchPin {
 
 // Trip operations
 export async function createTrip(name: string = 'Mi Viaje'): Promise<DbTrip | null> {
+  const supabase = createClient()
+
+  // Get the current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    console.error('Error getting user:', userError?.message || 'No user logged in')
+    return null
+  }
+
   const { data, error } = await supabase
     .from('trips')
-    .insert({ name })
+    .insert({ name, user_id: user.id })
     .select()
     .single()
 
@@ -133,6 +143,7 @@ export async function createTrip(name: string = 'Mi Viaje'): Promise<DbTrip | nu
 }
 
 export async function getTrip(tripId: string): Promise<DbTrip | null> {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('trips')
     .select('*')
@@ -148,6 +159,7 @@ export async function getTrip(tripId: string): Promise<DbTrip | null> {
 }
 
 export async function getFirstTrip(): Promise<DbTrip | null> {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('trips')
     .select('*')
@@ -168,6 +180,7 @@ export async function loadFullTrip(tripId: string): Promise<{
   days: Day[]
   searchPins: SearchPin[]
 } | null> {
+  const supabase = createClient()
   // Fetch all data in parallel
   const [daysResult, searchPinsResult] = await Promise.all([
     supabase
@@ -268,6 +281,7 @@ export async function saveDay(
   day: Day,
   position: number
 ): Promise<string | null> {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('days')
     .upsert({
@@ -289,16 +303,20 @@ export async function saveDay(
 }
 
 export async function deleteDay(dayId: string): Promise<boolean> {
-  const { error } = await supabase
+  const supabase = createClient()
+  console.log('🗑️ Deleting day:', dayId)
+
+  const { error, count } = await supabase
     .from('days')
     .delete()
     .eq('id', dayId)
 
   if (error) {
-    console.error('Error deleting day:', error)
+    console.error('❌ Error deleting day:', error.message, error.code, error.details)
     return false
   }
 
+  console.log('✅ Day deleted:', dayId)
   return true
 }
 
@@ -321,6 +339,7 @@ export async function saveRoute(
 
   console.log('📍 Saving route:', routeData)
 
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('routes')
     .upsert(routeData)
@@ -337,16 +356,20 @@ export async function saveRoute(
 }
 
 export async function deleteRoute(routeId: string): Promise<boolean> {
+  const supabase = createClient()
+  console.log('🗑️ Deleting route:', routeId)
+
   const { error } = await supabase
     .from('routes')
     .delete()
     .eq('id', routeId)
 
   if (error) {
-    console.error('Error deleting route:', error)
+    console.error('❌ Error deleting route:', error.message, error.code, error.details)
     return false
   }
 
+  console.log('✅ Route deleted:', routeId)
   return true
 }
 
@@ -372,6 +395,7 @@ export async function savePlace(
 
   console.log('📌 Saving place:', placeData)
 
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('places')
     .upsert(placeData)
@@ -388,16 +412,20 @@ export async function savePlace(
 }
 
 export async function deletePlace(placeId: string): Promise<boolean> {
+  const supabase = createClient()
+  console.log('🗑️ Deleting place:', placeId)
+
   const { error } = await supabase
     .from('places')
     .delete()
     .eq('id', placeId)
 
   if (error) {
-    console.error('Error deleting place:', error)
+    console.error('❌ Error deleting place:', error.message, error.code, error.details)
     return false
   }
 
+  console.log('✅ Place deleted:', placeId)
   return true
 }
 
@@ -406,6 +434,7 @@ export async function saveCustomRoute(
   routeId: string,
   customRoute: CustomRoute
 ): Promise<boolean> {
+  const supabase = createClient()
   // First delete existing custom route for this segment
   await supabase
     .from('custom_routes')
@@ -437,6 +466,7 @@ export async function deleteCustomRoute(
   fromPlaceId: string,
   toPlaceId: string
 ): Promise<boolean> {
+  const supabase = createClient()
   const { error } = await supabase
     .from('custom_routes')
     .delete()
@@ -458,6 +488,7 @@ export async function savePoi(
   poi: PointOfInterest,
   position: number
 ): Promise<string | null> {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('points_of_interest')
     .upsert({
@@ -483,16 +514,20 @@ export async function savePoi(
 }
 
 export async function deletePoi(poiId: string): Promise<boolean> {
+  const supabase = createClient()
+  console.log('🗑️ Deleting POI:', poiId)
+
   const { error } = await supabase
     .from('points_of_interest')
     .delete()
     .eq('id', poiId)
 
   if (error) {
-    console.error('Error deleting POI:', error)
+    console.error('❌ Error deleting POI:', error.message, error.code, error.details)
     return false
   }
 
+  console.log('✅ POI deleted:', poiId)
   return true
 }
 
@@ -501,6 +536,7 @@ export async function saveSearchPin(
   tripId: string,
   pin: SearchPin
 ): Promise<string | null> {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('search_pins')
     .upsert({
@@ -527,20 +563,25 @@ export async function saveSearchPin(
 }
 
 export async function deleteSearchPin(pinId: string): Promise<boolean> {
+  const supabase = createClient()
+  console.log('🗑️ Deleting search pin:', pinId)
+
   const { error } = await supabase
     .from('search_pins')
     .delete()
     .eq('id', pinId)
 
   if (error) {
-    console.error('Error deleting search pin:', error)
+    console.error('❌ Error deleting search pin:', error.message, error.code, error.details)
     return false
   }
 
+  console.log('✅ Search pin deleted:', pinId)
   return true
 }
 
 export async function clearSearchPins(tripId: string): Promise<boolean> {
+  const supabase = createClient()
   const { error } = await supabase
     .from('search_pins')
     .delete()
@@ -563,6 +604,7 @@ export async function syncTripToDb(
   days: Day[],
   searchPins: SearchPin[]
 ): Promise<boolean> {
+  const supabase = createClient()
   try {
     // Debug: Log what we're syncing
     console.log('🔄 Syncing trip to DB:', {
@@ -582,13 +624,23 @@ export async function syncTripToDb(
     })
 
     // Get existing days to detect deletions
-    const { data: existingDays } = await supabase
+    const { data: existingDays, error: existingDaysError } = await supabase
       .from('days')
       .select('id')
       .eq('trip_id', tripId)
 
+    if (existingDaysError) {
+      console.error('❌ Error fetching existing days:', existingDaysError.message)
+    }
+
     const existingDayIds = new Set((existingDays || []).map((d) => d.id))
     const currentDayIds = new Set(days.map((d) => d.id))
+
+    console.log('📊 Days comparison:', {
+      existingInDb: Array.from(existingDayIds),
+      currentInState: Array.from(currentDayIds),
+      toDelete: Array.from(existingDayIds).filter(id => !currentDayIds.has(id))
+    })
 
     // Delete removed days (cascade will handle routes, places, pois)
     for (const existingId of existingDayIds) {
@@ -603,13 +655,23 @@ export async function syncTripToDb(
       await saveDay(tripId, day, dayIndex)
 
       // Get existing routes for this day
-      const { data: existingRoutes } = await supabase
+      const { data: existingRoutes, error: existingRoutesError } = await supabase
         .from('routes')
         .select('id')
         .eq('day_id', day.id)
 
+      if (existingRoutesError) {
+        console.error('❌ Error fetching existing routes:', existingRoutesError.message)
+      }
+
       const existingRouteIds = new Set((existingRoutes || []).map((r) => r.id))
       const currentRouteIds = new Set(day.routes.map((r) => r.id))
+
+      console.log('📊 Routes comparison for day', day.id, ':', {
+        existingInDb: Array.from(existingRouteIds),
+        currentInState: Array.from(currentRouteIds),
+        toDelete: Array.from(existingRouteIds).filter(id => !currentRouteIds.has(id))
+      })
 
       // Delete removed routes
       for (const existingId of existingRouteIds) {
@@ -654,13 +716,23 @@ export async function syncTripToDb(
       }
 
       // Get existing POIs for this day
-      const { data: existingPois } = await supabase
+      const { data: existingPois, error: existingPoisError } = await supabase
         .from('points_of_interest')
         .select('id')
         .eq('day_id', day.id)
 
+      if (existingPoisError) {
+        console.error('❌ Error fetching existing POIs:', existingPoisError.message)
+      }
+
       const existingPoiIds = new Set((existingPois || []).map((p) => p.id))
       const currentPoiIds = new Set(day.pointsOfInterest.map((p) => p.id))
+
+      console.log('📊 POIs comparison for day', day.id, ':', {
+        existingInDb: Array.from(existingPoiIds),
+        currentInState: Array.from(currentPoiIds),
+        toDelete: Array.from(existingPoiIds).filter(id => !currentPoiIds.has(id))
+      })
 
       // Delete removed POIs
       for (const existingId of existingPoiIds) {
