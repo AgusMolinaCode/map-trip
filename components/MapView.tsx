@@ -126,6 +126,7 @@ function DayRoutes({ day, color }: { day: Day; color: string }) {
 
 export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, ref) => {
   const mapRef = useRef<MapRef>(null)
+  const [mapLoaded, setMapLoaded] = useState(false)
   const [viewState, setViewState] = useState({
     longitude: -63.6167, // Argentina center
     latitude: -38.4161,
@@ -347,11 +348,12 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
         ref={mapRef}
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
+        onLoad={() => setMapLoaded(true)}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       >
-        {/* Render routes for each day */}
-        {days.map((day) => {
+        {/* Render routes for each day (only after map loaded) */}
+        {mapLoaded && days.map((day) => {
           const color = day.dayColor || DAY_COLORS[0]
           return <DayRoutes key={day.id} day={day} color={color} />
         })}

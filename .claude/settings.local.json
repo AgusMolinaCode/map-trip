@@ -32,7 +32,8 @@
       "mcp__plugin_supabase_supabase__apply_migration",
       "mcp__plugin_supabase_supabase__get_advisors",
       "mcp__plugin_supabase_supabase__get_logs",
-      "mcp__plugin_supabase_supabase__list_migrations"
+      "mcp__plugin_supabase_supabase__list_migrations",
+      "Bash(del \"C:\\\\Users\\\\urano\\\\OneDrive\\\\Escritorio\\\\Programacion\\\\map-trip\\\\components\\\\UnsavedChangesGuard.tsx\")"
     ],
     "deny": [],
     "ask": []

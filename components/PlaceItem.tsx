@@ -2,10 +2,11 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, MapPin, X } from 'lucide-react'
+import { GripVertical, MapPin, X, Loader2, Check } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { Place } from '@/hooks/useTripStore'
+import { useTripContext } from '@/contexts/TripContext'
 
 interface PlaceItemProps {
   place: Place
@@ -14,6 +15,8 @@ interface PlaceItemProps {
 }
 
 export function PlaceItem({ place, onRemove, onClick }: PlaceItemProps) {
+  const { syncStatus } = useTripContext()
+
   const {
     attributes,
     listeners,
@@ -28,6 +31,10 @@ export function PlaceItem({ place, onRemove, onClick }: PlaceItemProps) {
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
+
+  // Determinar el estado de guardado
+  const isSaving = syncStatus === 'saving'
+  const isSaved = syncStatus === 'saved'
 
   return (
     <Card
@@ -48,7 +55,21 @@ export function PlaceItem({ place, onRemove, onClick }: PlaceItemProps) {
           <div className="flex items-center gap-2 w-full">
             <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="flex-1 min-w-0 w-0">
-              <p className="text-sm font-medium truncate">{place.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium truncate">{place.name}</p>
+                {isSaving && (
+                  <span className="flex items-center gap-1 text-xs text-amber-600 flex-shrink-0">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Guardando...
+                  </span>
+                )}
+                {isSaved && (
+                  <span className="flex items-center gap-1 text-xs text-green-600 flex-shrink-0">
+                    <Check className="h-3 w-3" />
+                    Guardado
+                  </span>
+                )}
+              </div>
               {place.address && (
                 <p className="text-xs text-muted-foreground truncate">
                   {place.address}

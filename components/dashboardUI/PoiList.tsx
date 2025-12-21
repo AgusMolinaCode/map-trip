@@ -1,8 +1,9 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { MapPin, Trash2 } from 'lucide-react'
+import { MapPin, Trash2, Loader2, Check } from 'lucide-react'
 import type { PointOfInterest, Place } from '@/hooks/useTripStore'
+import { useTripContext } from '@/contexts/TripContext'
 
 interface PoiListProps {
   pois: PointOfInterest[]
@@ -12,7 +13,13 @@ interface PoiListProps {
 }
 
 export function PoiList({ pois, onPoiClick, onRemove, dayColor }: PoiListProps) {
+  const { syncStatus } = useTripContext()
+
   if (!pois || pois.length === 0) return null
+
+  // Determinar el estado de guardado
+  const isSaving = syncStatus === 'saving'
+  const isSaved = syncStatus === 'saved'
 
   return (
     <div className="space-y-2">
@@ -42,7 +49,21 @@ export function PoiList({ pois, onPoiClick, onRemove, dayColor }: PoiListProps) 
             >
               <MapPin className="h-4 w-4 flex-shrink-0" style={{ color: dayColor }} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{poi.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium truncate">{poi.name}</p>
+                  {isSaving && (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 flex-shrink-0">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Guardando...
+                    </span>
+                  )}
+                  {isSaved && (
+                    <span className="flex items-center gap-1 text-xs text-green-600 flex-shrink-0">
+                      <Check className="h-3 w-3" />
+                      Guardado
+                    </span>
+                  )}
+                </div>
                 {poi.address && (
                   <p className="text-xs text-muted-foreground truncate">{poi.address}</p>
                 )}
