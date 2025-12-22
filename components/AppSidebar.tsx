@@ -142,7 +142,7 @@ export function AppSidebar() {
             type="submit"
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="justify-start text-muted-foreground hover:bg-red-300/70 bg-red-200"
           >
             <LogOut className="h-4 w-4 mr-2" />
             Cerrar sesión

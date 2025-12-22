@@ -406,7 +406,7 @@ export const MapView = forwardRef<MapViewRef, MapViewProps>(({ onPlaceClick }, r
                       cursor: 'move',
                       transition: 'transform 0.2s',
                     }}
-                    title="Arrastra para mover • Click para editar ruta"
+                    title="Arrastra para mover • Click para ver información de ruta"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'scale(1.1)'
                     }}
