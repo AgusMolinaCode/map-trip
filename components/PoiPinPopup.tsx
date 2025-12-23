@@ -63,7 +63,7 @@ export function PoiPinPopup({ dayId, poi, onClose }: PoiPinPopupProps) {
             )}
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0 shrink-0">
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6  p-0 shrink-0">
           <X className="h-4 w-4" />
         </Button>
       </div>
