@@ -33,7 +33,12 @@
       "mcp__plugin_supabase_supabase__get_advisors",
       "mcp__plugin_supabase_supabase__get_logs",
       "mcp__plugin_supabase_supabase__list_migrations",
-      "Bash(del \"C:\\\\Users\\\\urano\\\\OneDrive\\\\Escritorio\\\\Programacion\\\\map-trip\\\\components\\\\UnsavedChangesGuard.tsx\")"
+      "Bash(del \"C:\\\\Users\\\\urano\\\\OneDrive\\\\Escritorio\\\\Programacion\\\\map-trip\\\\components\\\\UnsavedChangesGuard.tsx\")",
+      "mcp__plugin_supabase_supabase__get_project_url",
+      "Bash(cmd /c taskkill /PID 31588 /F)",
+      "Bash(cmd /c taskkill /PID 16204 /F)",
+      "Bash(powershell -Command \"Stop-Process -Id 31588 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 16204 -Force\")"
     ],
     "deny": [],
     "ask": []

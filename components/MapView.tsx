@@ -31,20 +31,24 @@ export interface MapViewRef {
 }
 
 // Component to render a single segment route (between two places)
-function RouteSegment({
+function RouteSegmentWithStats({
   dayId,
+  routeId,
   fromPlace,
   toPlace,
   profile,
   color,
   customRoute,
+  onStatsUpdate,
 }: {
   dayId: string
+  routeId: string
   fromPlace: Place
   toPlace: Place
   profile: RouteProfile
   color: string
   customRoute?: { geometry: { type: 'LineString'; coordinates: [number, number][] } }
+  onStatsUpdate: (placeId: string, nextPlaceId: string, distance: number, duration: number) => void
 }) {
   // Only fetch automatic route if no custom route exists
   const shouldFetchRoute = !customRoute
@@ -57,10 +61,17 @@ function RouteSegment({
     [shouldFetchRoute, fromCoords, toCoords]
   )
 
-  const { geometry } = useMapboxRoute({
+  const { geometry, distance, duration } = useMapboxRoute({
     coordinates,
     profile,
   })
+
+  // Report stats to parent component when they change
+  useEffect(() => {
+    if (distance !== undefined && duration !== undefined) {
+      onStatsUpdate(fromPlace.id, toPlace.id, distance, duration)
+    }
+  }, [distance, duration, fromPlace.id, toPlace.id, onStatsUpdate])
 
   // Use custom route if available, otherwise use automatic route
   const routeGeometry = useMemo(() => {
@@ -101,24 +112,72 @@ function DayRoutes({ day, color }: { day: Day; color: string }) {
       {day.routes.map((route) => {
         if (route.places.length < 2) return null
 
-        return route.places.slice(0, -1).map((place, index) => {
-          const nextPlace = route.places[index + 1]
-          const customRoute = route.customRoutes?.find(
-            (r) => r.fromPlaceId === place.id && r.toPlaceId === nextPlace.id
-          )
+        return (
+          <RouteWithStats
+            key={route.id}
+            dayId={day.id}
+            route={route}
+            color={color}
+          />
+        )
+      })}
+    </>
+  )
+}
 
-          return (
-            <RouteSegment
-              key={`${route.id}-${place.id}-${nextPlace.id}`}
-              dayId={day.id}
-              fromPlace={place}
-              toPlace={nextPlace}
-              profile={route.routeProfile}
-              color={color}
-              customRoute={customRoute}
-            />
-          )
-        })
+// Component to manage route segments and aggregate stats
+function RouteWithStats({ dayId, route, color }: { dayId: string; route: any; color: string }) {
+  const [segmentStats, setSegmentStats] = useState<Record<string, { distance: number; duration: number }>>({})
+
+  // Calculate total stats when segment stats change
+  useEffect(() => {
+    const statsArray = Object.values(segmentStats)
+    if (statsArray.length > 0) {
+      let totalDistance = 0
+      let totalDuration = 0
+
+      statsArray.forEach((stats) => {
+        totalDistance += stats.distance
+        totalDuration += stats.duration
+      })
+
+      // Update stats directly using getState to avoid creating dependency
+      useTripStore.getState().updateRouteStats(dayId, route.id, {
+        distance: totalDistance,
+        duration: totalDuration,
+      })
+    }
+  }, [segmentStats, dayId, route.id])
+
+  // Memoize callback to prevent unnecessary re-renders
+  const handleStatsUpdate = useCallback((placeId: string, nextPlaceId: string, distance: number, duration: number) => {
+    setSegmentStats((prev) => ({
+      ...prev,
+      [`${placeId}-${nextPlaceId}`]: { distance, duration }
+    }))
+  }, [])
+
+  return (
+    <>
+      {route.places.slice(0, -1).map((place: Place, index: number) => {
+        const nextPlace = route.places[index + 1]
+        const customRoute = route.customRoutes?.find(
+          (r: any) => r.fromPlaceId === place.id && r.toPlaceId === nextPlace.id
+        )
+
+        return (
+          <RouteSegmentWithStats
+            key={`${route.id}-${place.id}-${nextPlace.id}`}
+            dayId={dayId}
+            routeId={route.id}
+            fromPlace={place}
+            toPlace={nextPlace}
+            profile={route.routeProfile}
+            color={color}
+            customRoute={customRoute}
+            onStatsUpdate={handleStatsUpdate}
+          />
+        )
       })}
     </>
   )

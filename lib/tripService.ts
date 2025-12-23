@@ -118,6 +118,44 @@ function dbSearchPinToZustand(dbPin: DbSearchPin): SearchPin {
 
 // Trip operations
 export async function createTrip(name: string = 'Mi Viaje'): Promise<DbTrip | null> {
+  console.log('➕ [tripService] createTrip: Iniciando creación de trip con nombre:', name)
+  const supabase = createClient()
+
+  // Get the current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    console.error('❌ [tripService] createTrip: Error obteniendo usuario:', userError?.message || 'No user logged in')
+    return null
+  }
+
+  console.log('👤 [tripService] createTrip: Usuario autenticado:', {
+    userId: user.id,
+    email: user.email
+  })
+
+  const { data, error } = await supabase
+    .from('trips')
+    .insert({ name, user_id: user.id })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('❌ [tripService] createTrip: Error creando trip:', error.message, error.code, error.details)
+    return null
+  }
+
+  console.log('✅ [tripService] createTrip: Trip creado exitosamente:', {
+    id: data.id,
+    name: data.name,
+    user_id: data.user_id,
+    created_at: data.created_at
+  })
+
+  return data
+}
+
+export async function getTrip(tripId: string): Promise<DbTrip | null> {
   const supabase = createClient()
 
   // Get the current user
@@ -128,26 +166,12 @@ export async function createTrip(name: string = 'Mi Viaje'): Promise<DbTrip | nu
     return null
   }
 
-  const { data, error } = await supabase
-    .from('trips')
-    .insert({ name, user_id: user.id })
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Error creating trip:', error.message, error.code, error.details)
-    return null
-  }
-
-  return data
-}
-
-export async function getTrip(tripId: string): Promise<DbTrip | null> {
-  const supabase = createClient()
+  // Get trip only if it belongs to this user
   const { data, error } = await supabase
     .from('trips')
     .select('*')
     .eq('id', tripId)
+    .eq('user_id', user.id)
     .single()
 
   if (error) {
@@ -158,19 +182,85 @@ export async function getTrip(tripId: string): Promise<DbTrip | null> {
   return data
 }
 
-export async function getFirstTrip(): Promise<DbTrip | null> {
+export async function getUserTrips(): Promise<DbTrip[]> {
+  console.log('📋 [tripService] getUserTrips: Iniciando consulta de trips del usuario')
   const supabase = createClient()
+
+  // Get the current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    console.error('❌ [tripService] getUserTrips: Error obteniendo usuario:', userError?.message || 'No user logged in')
+    return []
+  }
+
+  console.log('👤 [tripService] getUserTrips: Usuario autenticado:', {
+    userId: user.id,
+    email: user.email
+  })
+
+  // Get all trips for this user
   const { data, error } = await supabase
     .from('trips')
     .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('❌ [tripService] getUserTrips: Error consultando trips:', error)
+    return []
+  }
+
+  console.log('✅ [tripService] getUserTrips: Trips encontrados:', {
+    count: data?.length || 0,
+    trips: data?.map(t => ({
+      id: t.id,
+      name: t.name,
+      user_id: t.user_id,
+      created_at: t.created_at
+    })) || []
+  })
+
+  return data || []
+}
+
+export async function getFirstTrip(): Promise<DbTrip | null> {
+  console.log('🔍 [tripService] getFirstTrip: Iniciando búsqueda del primer trip del usuario')
+  const supabase = createClient()
+
+  // Get the current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    console.error('❌ [tripService] getFirstTrip: Error obteniendo usuario:', userError?.message || 'No user logged in')
+    return null
+  }
+
+  console.log('👤 [tripService] getFirstTrip: Usuario autenticado:', {
+    userId: user.id,
+    email: user.email
+  })
+
+  // Get first trip for this user
+  const { data, error } = await supabase
+    .from('trips')
+    .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: true })
     .limit(1)
     .single()
 
   if (error) {
-    // No trip exists yet
+    console.log('⚠️ [tripService] getFirstTrip: No se encontró trip para este usuario (puede ser normal si es nuevo):', error.message)
     return null
   }
+
+  console.log('✅ [tripService] getFirstTrip: Primer trip encontrado:', {
+    id: data.id,
+    name: data.name,
+    user_id: data.user_id,
+    created_at: data.created_at
+  })
 
   return data
 }
@@ -180,8 +270,11 @@ export async function loadFullTrip(tripId: string): Promise<{
   days: Day[]
   searchPins: SearchPin[]
 } | null> {
+  console.log('📥 [tripService] loadFullTrip: Iniciando carga completa del trip:', tripId)
   const supabase = createClient()
+
   // Fetch all data in parallel
+  console.log('🔄 [tripService] loadFullTrip: Consultando days y search_pins...')
   const [daysResult, searchPinsResult] = await Promise.all([
     supabase
       .from('days')
@@ -195,14 +288,21 @@ export async function loadFullTrip(tripId: string): Promise<{
   ])
 
   if (daysResult.error) {
-    console.error('Error loading days:', daysResult.error)
+    console.error('❌ [tripService] loadFullTrip: Error loading days:', daysResult.error)
     return null
   }
 
   const days = daysResult.data as DbDay[]
   const searchPins = (searchPinsResult.data || []) as DbSearchPin[]
 
+  console.log('📊 [tripService] loadFullTrip: Datos iniciales obtenidos:', {
+    daysCount: days.length,
+    searchPinsCount: searchPins.length,
+    days: days.map(d => ({ id: d.id, name: d.name, trip_id: d.trip_id }))
+  })
+
   if (days.length === 0) {
+    console.log('⚠️ [tripService] loadFullTrip: No hay days para este trip, retornando vacío')
     return {
       days: [],
       searchPins: searchPins.map(dbSearchPinToZustand),
@@ -211,6 +311,7 @@ export async function loadFullTrip(tripId: string): Promise<{
 
   // Fetch routes for all days
   const dayIds = days.map((d) => d.id)
+  console.log('🔄 [tripService] loadFullTrip: Consultando routes para days:', dayIds)
   const { data: routes, error: routesError } = await supabase
     .from('routes')
     .select('*')
@@ -218,11 +319,20 @@ export async function loadFullTrip(tripId: string): Promise<{
     .order('position')
 
   if (routesError) {
-    console.error('Error loading routes:', routesError)
+    console.error('❌ [tripService] loadFullTrip: Error loading routes:', routesError)
     return null
   }
 
   const dbRoutes = (routes || []) as DbRoute[]
+  console.log('📊 [tripService] loadFullTrip: Routes obtenidas:', {
+    routesCount: dbRoutes.length,
+    routes: dbRoutes.map(r => ({
+      id: r.id,
+      name: r.name,
+      day_id: r.day_id,
+      route_profile: r.route_profile
+    }))
+  })
 
   // Fetch places and custom routes for all routes
   const routeIds = dbRoutes.map((r) => r.id)
@@ -231,6 +341,7 @@ export async function loadFullTrip(tripId: string): Promise<{
   let dbCustomRoutes: DbCustomRoute[] = []
 
   if (routeIds.length > 0) {
+    console.log('🔄 [tripService] loadFullTrip: Consultando places y custom_routes para routes:', routeIds)
     const [placesResult, customRoutesResult] = await Promise.all([
       supabase
         .from('places')
@@ -245,9 +356,23 @@ export async function loadFullTrip(tripId: string): Promise<{
 
     dbPlaces = (placesResult.data || []) as DbPlace[]
     dbCustomRoutes = (customRoutesResult.data || []) as DbCustomRoute[]
+
+    console.log('📊 [tripService] loadFullTrip: Places y custom routes obtenidos:', {
+      placesCount: dbPlaces.length,
+      places: dbPlaces.map(p => ({
+        id: p.id,
+        name: p.name,
+        route_id: p.route_id,
+        position: p.position
+      })),
+      customRoutesCount: dbCustomRoutes.length
+    })
+  } else {
+    console.log('⚠️ [tripService] loadFullTrip: No hay routes, saltando consulta de places')
   }
 
   // Fetch POIs for all days
+  console.log('🔄 [tripService] loadFullTrip: Consultando POIs para days:', dayIds)
   const { data: pois } = await supabase
     .from('points_of_interest')
     .select('*')
@@ -255,8 +380,13 @@ export async function loadFullTrip(tripId: string): Promise<{
     .order('position')
 
   const dbPois = (pois || []) as DbPointOfInterest[]
+  console.log('📊 [tripService] loadFullTrip: POIs obtenidos:', {
+    poisCount: dbPois.length,
+    pois: dbPois.map(p => ({ id: p.id, name: p.name, day_id: p.day_id }))
+  })
 
   // Assemble the data
+  console.log('🔧 [tripService] loadFullTrip: Ensamblando datos...')
   const assembledDays: Day[] = days.map((day) => {
     const dayRoutes = dbRoutes.filter((r) => r.day_id === day.id)
     const routesWithData = dayRoutes.map((route) => ({
@@ -267,6 +397,21 @@ export async function loadFullTrip(tripId: string): Promise<{
     const dayPois = dbPois.filter((p) => p.day_id === day.id)
 
     return dbDayToZustand(day, routesWithData, dayPois)
+  })
+
+  console.log('✅ [tripService] loadFullTrip: Datos ensamblados exitosamente:', {
+    daysCount: assembledDays.length,
+    days: assembledDays.map(d => ({
+      id: d.id,
+      name: d.name,
+      routesCount: d.routes.length,
+      routes: d.routes.map(r => ({
+        id: r.id,
+        placesCount: r.places.length
+      })),
+      poisCount: d.pointsOfInterest.length
+    })),
+    searchPinsCount: searchPins.length
   })
 
   return {
