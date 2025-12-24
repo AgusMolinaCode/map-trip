@@ -59,7 +59,7 @@ export function PoiPinPopup({ dayId, poi, onClose }: PoiPinPopupProps) {
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate text-gray-900">Punto de interés</p>
             {poi.address && (
-              <p className="text-xs text-gray-800 truncate">{poi.address}</p>
+              <p className="text-xs text-gray-800  truncate">{poi.address}</p>
             )}
           </div>
         </div>
